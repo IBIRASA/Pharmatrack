@@ -80,12 +80,8 @@ WSGI_APPLICATION = 'pharmatrack.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'djongo',
-        'NAME': 'pharmatrack_db',  
-        'ENFORCE_SCHEMA': False,   
-        'CLIENT': {
-            'host': 'mongodb://localhost:27017',  
-        }
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
