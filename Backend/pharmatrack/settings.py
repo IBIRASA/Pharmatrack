@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-+j)&pxm^9xxh7^ethjfsle_fi+u%%i=%js-x)ft83b7v&(x8^j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["pharmatrack-wb0c.onrender.com", "localhost", "127.0.0.1"]
 
 
 # Application definition
