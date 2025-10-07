@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import logo from "../assets/logo.png";
 import API from "../api";
+import { Link } from "react-router-dom";
+
 import { useNavigate } from "react-router-dom";
 interface LoginForm {
   username: string;
@@ -76,9 +78,9 @@ const Login: React.FC = () => {
 
         <p className="text-center text-sm mt-4">
           Create a new account?{" "}
-          <a href="/register" className="text-blue-600 hover:underline">
-            Register here
-          </a>
+           <Link to="/register" className="text-pink-600 hover:underline">
+          Register
+        </Link>
         </p>
       </div>
     </div>
