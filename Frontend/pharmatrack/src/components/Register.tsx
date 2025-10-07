@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import logo from "../assets/logo.png";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import API from "../api"
 
 interface RegisterForm {
@@ -134,9 +135,10 @@ const Register: React.FC = () => {
 
         <p className="text-center text-sm mt-4">
           Already have an account?{" "}
-          <a href="/login" className="text-blue-600 hover:underline">
-            Login here
-          </a>
+                <Link to="/login" className="text-pink-600 hover:underline">
+          Login
+        </Link>
+
         </p>
       </div>
     </div>
