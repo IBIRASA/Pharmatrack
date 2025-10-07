@@ -23,7 +23,7 @@ const Login: React.FC = () => {
     setErrors({});
 
     try {
-      const res = await API.post("login/", formData);
+      const res = await API.post("/login", formData);
       alert(res.data.message);
       localStorage.setItem("user", JSON.stringify(res.data));
       navigate("/dashboard");

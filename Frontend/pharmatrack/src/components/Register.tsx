@@ -40,7 +40,7 @@ const Register: React.FC = () => {
     setErrors({});
 
     try {
-      const res = await API.post("register/", formData);
+      const res = await API.post("/register", formData);
       alert(res.data.message);
       navigate("/login");
     } catch (err: any) {
