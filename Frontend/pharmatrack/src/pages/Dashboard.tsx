@@ -1,6 +1,6 @@
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { FaPills, FaShoppingCart, FaExclamationTriangle, FaCalendarAlt, FaSignOutAlt, FaCog, FaChartLine, FaFileAlt } from "react-icons/fa";
+import { FaPills, FaShoppingCart, FaSignOutAlt, FaCog, FaChartLine, FaFileAlt } from "react-icons/fa";
 
 const Dashboard: React.FC = () => {
   const data = [
