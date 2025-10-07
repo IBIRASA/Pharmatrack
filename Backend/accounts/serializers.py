@@ -34,17 +34,18 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
-    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+    password = serializers.CharField(write_only=True)
 
-    def validate(self, attrs):
-        username = attrs.get('username')
-        password = attrs.get('password')
+    def validate(self, data):
+        username = data.get("username")
+        password = data.get("password")
 
         if username and password:
             user = authenticate(username=username, password=password)
-            if not user:
-                raise serializers.ValidationError("Invalid username or password")
-            attrs['user'] = user
-            return attrs
+            if user:
+                data["user"] = user
+            else:
+                raise serializers.ValidationError("Invalid username or password.")
         else:
-            raise serializers.ValidationError("Both username and password are required")
+            raise serializers.ValidationError("Both username and password are required.")
+        return data
