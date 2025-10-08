@@ -10,7 +10,6 @@ const Dashboard: React.FC = () => {
     { name: "April", Highest: 85, Lowest: 25 },
     { name: "May", Highest: 0, Lowest: 0 },
   ];
-
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
@@ -72,7 +71,6 @@ const Dashboard: React.FC = () => {
     </div>
   );
 };
-
 // Sidebar Item Component
 interface SidebarItemProps {
   icon: React.ReactNode;
