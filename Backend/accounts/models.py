@@ -9,15 +9,14 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='patient')
     fullname = models.CharField(max_length=255)
 
-    # Fix reverse accessor clashes
     groups = models.ManyToManyField(
         Group,
-        related_name='accounts_users',   # Custom related name
+        related_name='accounts_users', 
         blank=True
     )
     user_permissions = models.ManyToManyField(
         Permission,
-        related_name='accounts_users_permissions',  # Custom related name
+        related_name='accounts_users_permissions',  
         blank=True
     )
 

@@ -1,6 +1,6 @@
 # Pharmatrack
 
-Pharmatrack connects patients with nearby pharmacies for faster and easier care. Users can register, login, and find pharmacies quickly. Admins can manage pharmacies and medications.
+Pharmatrack connects patients with nearby pharmacies for faster and easier care. Users can register, login, and find pharmacies quickly. Admins can manage pharmacies and medications..
 
 ## Table of Contents
 
@@ -12,8 +12,7 @@ Pharmatrack connects patients with nearby pharmacies for faster and easier care.
 6. [Designs](#designs)
 7. [Deployment Plan](#deployment-plan)
 8. [Demo Video](#demo-video)
-9. [Repository Link](#repository-link) 
-10.[Deployed Links](#deployed-links)
+9. [Repository Link](#repository-link) 10.[Deployed Links](#deployed-links)
 
 ## Project Overview
 
@@ -124,6 +123,7 @@ MongoDB hosted on: [MongoDBCompass]
 ## Demo Video
 
 Watch a 5–10 minute demonstration of Pharmatrack’s functionality:
+Link : https://www.youtube.com/watch?v=veYHoQDyXLY
 
 ## Repo Link
 
