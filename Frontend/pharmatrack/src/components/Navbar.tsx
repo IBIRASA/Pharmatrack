@@ -19,7 +19,6 @@ const Navbar = () => {
         <li><a href="#" className="hover:text-teal-600">Why Us</a></li>
         <li><a href="#" className="hover:text-teal-600">Contact</a></li>
       </ul>
-
       {/* Hamburger Icon (Mobile) */}
       <div className="lg:hidden">
         <button
@@ -29,7 +28,6 @@ const Navbar = () => {
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
-
       {/* Mobile Menu */}
       {isOpen && (
         <div className="absolute top-16 left-0 w-full bg-white shadow-md lg:hidden">
