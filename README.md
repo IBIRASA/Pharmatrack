@@ -1,6 +1,6 @@
 # Pharmatrack
 
-Pharmatrack connects patients with nearby pharmacies for faster and easier care. Users can register, login, and find pharmacies quickly. Admins can manage pharmacies and medications.
+Pharmatrack connects patients with nearby pharmacies for faster and easier care. Users can register, login, and find pharmacies quickly. Admins can manage pharmacies and medications..
 
 ## Table of Contents
 
