@@ -84,7 +84,7 @@ class UserListView(APIView):
     Returns a list of all registered users.
     This should typically be restricted to admin users.
     """
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
         users = User.objects.all()
