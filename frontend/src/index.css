@@ -1,0 +1,70 @@
+@import "tailwindcss";
+  @layer theme {
+        :root {
+            --primary-color: #10b981;
+            --secondary-color: #059669;
+            --accent-color: #34d399;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --bg-light: #f9fafb;
+        }
+    }
+
+    @layer base {
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text-dark);
+        }
+    }
+
+    @layer components {
+        .btn-primary {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            padding-top: 0.75rem;
+        .btn-secondary {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-width: 2px;
+            border-style: solid;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 200ms;
+            background-color: transparent;
+        }
+        .btn-secondary:hover {
+            background-color: var(--primary-color);
+            color: #ffffff;
+        }
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition-property: background-color, border-color, color;
+            transition-duration: 200ms;
+        }
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-secondary {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-width: 2px;
+            border-style: solid;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 200ms;
+            background-color: transparent;
+        }
+        .btn-secondary:hover {
+            background-color: var(--primary-color);
+            color: #ffffff;
+        }
+    }
