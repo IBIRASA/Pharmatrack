@@ -7,7 +7,7 @@ services:
     env: python
     region: oregon
     repo: IBIRASA/Pharmatrack
-  branch: main
+    branch: main
     root: backend/pharmatrack_backend
     buildCommand: bash ../build_release.sh
     startCommand: gunicorn pharmatrack_backend.wsgi:application --log-file -
