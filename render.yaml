@@ -1,0 +1,14 @@
+# Render service template for the Django backend
+# Adjust 'repo' and 'branch' as needed before importing in Render.
+
+services:
+  - type: web
+    name: pharmatrack-backend
+    env: python
+    region: oregon
+    repo: IBIRASA/Pharmatrack
+    branch: feature
+    root: backend/pharmatrack_backend
+    buildCommand: bash ../build_release.sh
+    startCommand: gunicorn pharmatrack_backend.wsgi:application --log-file -
+    plan: free
