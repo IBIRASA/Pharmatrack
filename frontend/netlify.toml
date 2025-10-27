@@ -1,6 +1,6 @@
 [build]
   # Use a CI-friendly build command that skips running the TypeScript project build
-  # (some CI environments fail because of strict type errors like unused imports).
+  # (some CI environments fail because of strict type errors).
   command = "npm ci && npm run build:netlify"
   publish = "dist"
 
@@ -8,5 +8,5 @@
   command = "npm run dev"
 
 [build.environment]
-  # Optional: set Node version used by Netlify. Netlify will pick a default if omitted.
-  NODE_VERSION = "18"
+  # Use Node 20 to satisfy engine requirements for some dev dependencies
+  NODE_VERSION = "20"

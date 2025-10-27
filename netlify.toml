@@ -4,13 +4,14 @@
 [build]
   # build inside the frontend folder
   base = "frontend"
-  # install and build the Vite app
-  command = "npm ci && npm run build"
+  # install and build the Vite app using the CI-friendly script
+  command = "npm ci && npm run build:netlify"
   # publish directory relative to the base
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "18"
+  # Use Node 20 to satisfy newer dependency engine requirements
+  NODE_VERSION = "20"
 
 [dev]
   command = "npm run dev"
