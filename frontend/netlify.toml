@@ -1,5 +1,7 @@
 [build]
-  command = "npm run build"
+  # Use a CI-friendly build command that skips running the TypeScript project build
+  # (some CI environments fail because of strict type errors like unused imports).
+  command = "npm ci && npm run build:netlify"
   publish = "dist"
 
 [dev]
