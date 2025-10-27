@@ -1,0 +1,10 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[dev]
+  command = "npm run dev"
+
+[build.environment]
+  # Optional: set Node version used by Netlify. Netlify will pick a default if omitted.
+  NODE_VERSION = "18"
