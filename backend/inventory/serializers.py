@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Medicine, Order
+from .models import Medicine, Order,OrderItem
 
 
 class MedicineSerializer(serializers.ModelSerializer):
@@ -30,7 +30,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ['id', 'medicine', 'quantity', 'unit_price', 'subtotal']
-        
+
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
