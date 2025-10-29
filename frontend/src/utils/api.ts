@@ -207,14 +207,29 @@ export const getNearbyPharmacies = async (lat: number, lon: number, radius: numb
   });
   return response.data;
 };
-export const sellMedicine = async (
-  medicine_id: number,
-  quantity: number,
-  customer?: { name?: string; phone?: string; email?: string }
-) => {
-  const payload: any = { medicine_id, quantity };
-  if (customer && Object.keys(customer).length) payload.customer = customer;
-  const res = await api.post("/inventory/sell/", payload);
-  return res.data;
+// Update the sellMedicine function in api.ts
+export const sellMedicine = async (saleData: any) => {
+  const response = await fetch('https://pharmatrack-wb0c.onrender.com/api/inventory/sell/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify({
+      medicine_id: saleData.medicine_id,
+      quantity: saleData.quantity,
+      customer: {
+        name: saleData.customer_name,
+        phone: saleData.customer_phone
+      }
+    })
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || 'Failed to record sale');
+  }
+  
+  return response.json();
 };
 export default api;
