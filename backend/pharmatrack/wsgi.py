@@ -29,7 +29,7 @@ import sys
 
 try:
 	# Preferred import when package is already on sys.path
-	from pharmatrack_backend.wsgi import application  # type: ignore
+	from pharmatrack.wsgi import application  # type: ignore
 except ModuleNotFoundError:
 	# Compute candidate path: <repo-root>/backend/pharmatrack_backend
 	this_dir = os.path.dirname(os.path.abspath(__file__))  # .../backend/pharmatrack
