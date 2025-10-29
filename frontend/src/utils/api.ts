@@ -207,5 +207,14 @@ export const getNearbyPharmacies = async (lat: number, lon: number, radius: numb
   });
   return response.data;
 };
-
+export const sellMedicine = async (
+  medicine_id: number,
+  quantity: number,
+  customer?: { name?: string; phone?: string; email?: string }
+) => {
+  const payload: any = { medicine_id, quantity };
+  if (customer && Object.keys(customer).length) payload.customer = customer;
+  const res = await api.post("/inventory/sell/", payload);
+  return res.data;
+};
 export default api;
