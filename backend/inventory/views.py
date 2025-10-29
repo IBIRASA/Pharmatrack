@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Q, Sum, Count, F
@@ -188,68 +188,68 @@ def order_detail(request, pk):
         order.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def sell_medicine(request):
     """
-    POST /api/inventory/sell/
-    payload: { medicine_id, quantity, customer: {name, phone, email?} }
-    Only pharmacies may call this endpoint.
+    Expected JSON:
+    { "medicine_id": 1, "quantity": 2, "customer_name": "Name", "customer_phone": "0999...", "prescription": null }
     """
-    if request.user.user_type != 'pharmacy':
-        return Response({'error': 'Pharmacy access only'}, status=status.HTTP_403_FORBIDDEN)
+    data = request.data
+    med_id = data.get('medicine_id')
+    qty = int(data.get('quantity', 0))
+    customer_name = data.get('customer_name') or ''
+    customer_phone = data.get('customer_phone') or ''
+    prescription = data.get('prescription', None)
 
-    serializer = SellRequestSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    med_id = serializer.validated_data['medicine_id']
-    qty = serializer.validated_data['quantity']
-    cust_data = serializer.validated_data.get('customer', {}) or {}
+    if not med_id or qty <= 0:
+        return Response({'detail': 'medicine_id and positive quantity required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        med = Medicine.objects.select_for_update().get(id=med_id)
+    except Medicine.DoesNotExist:
+        return Response({'detail': 'Medicine not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if med.stock_quantity < qty:
+        return Response({'detail': 'Insufficient stock'}, status=status.HTTP_400_BAD_REQUEST)
 
     with transaction.atomic():
-        # Lock the medicine row to avoid race conditions
-        med_qs = Medicine.objects.select_for_update().filter(pk=med_id, pharmacy=request.user)
-        med = get_object_or_404(med_qs)
-
-        if med.stock_quantity < qty:
-            return Response({'detail': 'Insufficient stock'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Decrement stock and update timestamp
-        med.stock_quantity -= qty
-        med.updated_at = timezone.now()
-        med.save(update_fields=['stock_quantity', 'updated_at'])
-
-        # Create (or get) Pharmacy instance for Sale model (Sale.pharmacy is Pharmacy model)
-        sale_pharmacy, _ = Pharmacy.objects.get_or_create(
-            user=med.pharmacy,
-            defaults={'name': getattr(med.pharmacy, 'username', 'Pharmacy'), 'address': '', 'phone': ''}
-        )
-
-        # Create Sale record
-        total_price = (med.unit_price or Decimal('0.00')) * Decimal(qty)
-        Sale.objects.create(
-            pharmacy=sale_pharmacy,
-            medicine=med,
-            quantity=qty,
-            total_price=total_price
-        )
-
-        # Create Order and OrderItem (Order.pharmacy uses User)
-        cust_name = cust_data.get('name') or cust_data.get('email') or "Guest"
-        cust_phone = cust_data.get('phone', '')
-
+        # create order (adjust field names to match your Order model)
         order = Order.objects.create(
-            pharmacy=med.pharmacy,  # med.pharmacy is a User in your models
-            customer_name=cust_name,
-            customer_phone=cust_phone,
-            total_amount=total_price,
-            status='completed'
+            customer_name=customer_name,
+            customer_phone=customer_phone,
+            prescription=prescription,
+            total=0  # will update after creating items
         )
 
+        unit_price = getattr(med, 'unit_price', 0) or 0
+        try:
+            unit_price = float(unit_price)
+        except Exception:
+            unit_price = 0.0
+
+        subtotal = unit_price * qty
         OrderItem.objects.create(
             order=order,
             medicine=med,
             quantity=qty,
-            unit_price=med.unit_price,
-            subtotal=total_price
+            unit_price=unit_price,
+            subtotal=subtotal
         )
 
-    return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+        # decrement stock
+        med.stock_quantity = med.stock_quantity - qty
+        med.save()
+
+        # update order total if Order has 'total' field
+        if hasattr(order, 'total'):
+            order.total = subtotal
+            order.save()
+
+    resp = {
+        'order_id': order.id,
+        'medicine_id': med.id,
+        'quantity': qty,
+        'remaining_stock': med.stock_quantity,
+    }
+    return Response(resp, status=status.HTTP_201_CREATED)
+# ...existing code...
