@@ -53,54 +53,82 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
   const totalPrice = parseFloat(medicine.unit_price) * quantity;
   const maxQuantity = medicine.stock_quantity;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     setError('');
     
-    if (!customerName.trim()) {
-      setError('Customer name is required');
-      return;
-    }
+//     if (!customerName.trim()) {
+//       setError('Customer name is required');
+//       return;
+//     }
 
-    if (quantity <= 0) {
-      setError('Quantity must be greater than 0');
-      return;
-    }
+//     if (quantity <= 0) {
+//       setError('Quantity must be greater than 0');
+//       return;
+//     }
 
-    if (quantity > maxQuantity) {
-      setError(`Cannot sell more than ${maxQuantity} units (available stock)`);
-      return;
-    }
+//     if (quantity > maxQuantity) {
+//       setError(`Cannot sell more than ${maxQuantity} units (available stock)`);
+//       return;
+//     }
 
-    setLoading(true);
-    try {
-      const saleData = {
-        medicine_id: medicine.id,
-        quantity: quantity,
-        customer_name: customerName.trim(),
-        customer_phone: customerPhone.trim(),
-        prescription: prescription.trim() || null
-      };
+//     setLoading(true);
+//     try {
+//       const saleData = {
+//         medicine_id: medicine.id,
+//         quantity: quantity,
+//         customer_name: customerName.trim(),
+//         customer_phone: customerPhone.trim(),
+//         prescription: prescription.trim() || null
+//       };
 
-      console.log('Sending sale data:', saleData); // Debug log
+//       console.log('Sending sale data:', saleData); // Debug log
 
-      const result = await sellMedicine(saleData);
+//       const result = await sellMedicine(saleData);
       
-      console.log('Sale successful:', result); // Debug log
+//       console.log('Sale successful:', result); // Debug log
       
-      // Notify parent component
-      onSold(result, quantity);
+//       // Notify parent component
+//       onSold(result, quantity);
       
-      // Close modal
-      onClose();
-    } catch (error: any) {
-      console.error('Error selling medicine:', error);
-      setError(error.message || 'Failed to process sale. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+//       // Close modal
+//       onClose();
+//     } catch (error: any) {
+//       console.error('Error selling medicine:', error);
+//       setError(error.message || 'Failed to process sale. Please try again.');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (!medicine) return;
 
+  setLoading(true);
+  try {
+    const orderData = {
+      medicine_id: medicine.id, // Ensure this is a number
+      quantity: quantity, // Ensure this is a number
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      prescription: prescription,
+      total_price: totalPrice.toFixed(2) // Ensure this is string with 2 decimals
+    };
+
+    console.log('Submitting order data:', orderData);
+    
+    const result = await sellMedicine(orderData);
+    onSold(result, quantity);
+    onClose();
+    
+  } catch (error: any) {
+    console.error('Error selling medicine:', error);
+    alert(`Sale failed: ${error.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
   const handleQuantityChange = (value: string) => {
     const newQuantity = parseInt(value) || 0;
     if (newQuantity <= maxQuantity) {

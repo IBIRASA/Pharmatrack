@@ -209,53 +209,34 @@ export const getNearbyPharmacies = async (lat: number, lon: number, radius: numb
 };
 // Update the sellMedicine function in api.ts
 export const sellMedicine = async (saleData: any) => {
-  try {
-    console.log('Sending sale data:', saleData);
-    
-    const response = await fetch('https://pharmatrack-wb0c.onrender.com/api/inventory/sell/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({
-        medicine: saleData.medicine_id,
-        quantity: saleData.quantity,
-        customer_name: saleData.customer_name,
-        customer_phone: saleData.customer_phone,
-        prescription: saleData.prescription,
-        total_price: saleData.total_price
-      })
-    });
+  console.log('🔄 Selling medicine with data:', saleData);
+  
+  // Ensure data types are correct
+  const payload = {
+    medicine_id: Number(saleData.medicine_id),
+    quantity: Number(saleData.quantity),
+    customer_name: String(saleData.customer_name || ''),
+    customer_phone: String(saleData.customer_phone || ''),
+    prescription: String(saleData.prescription || ''),
+    total_price: Number(parseFloat(saleData.total_price || 0).toFixed(2))
+  };
 
-    // Check if response is JSON
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      const text = await response.text();
-      console.error('Server returned HTML instead of JSON:', text.substring(0, 500));
-      throw new Error('Server error: Endpoint may not exist or there is a server configuration issue');
-    }
+  console.log('📦 Final payload:', payload);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || errorData.message || `HTTP ${response.status}: Failed to record sale`);
-    }
+  const response = await fetch('https://pharmatrack-wb0c.onrender.com/api/inventory/sell/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify(payload)
+  });
 
-    const result = await response.json();
-    console.log('Sale successful:', result);
-    return result;
-
-  } catch (error: any) {
-    console.error('API call failed:', error);
-    
-    // Provide more specific error messages
-    if (error.message.includes('Failed to fetch')) {
-      throw new Error('Network error: Cannot connect to server. Please check your internet connection.');
-    } else if (error.message.includes('HTML')) {
-      throw new Error('Server configuration error: The sales endpoint may not be properly configured.');
-    } else {
-      throw error;
-    }
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || errorData.message || 'Failed to record sale');
   }
+
+  return response.json();
 };
 export default api;
