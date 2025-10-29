@@ -23,21 +23,18 @@ This keeps deployments resilient whether Render runs from the repo root or
 from the `backend` subdirectory.
 """
 
-import importlib
+
 import os
 import sys
+from django.core.wsgi import get_wsgi_application
 
-try:
-	# Preferred import when package is already on sys.path
-	from pharmatrack.wsgi import application  # type: ignore
-except ModuleNotFoundError:
-	# Compute candidate path: <repo-root>/backend/pharmatrack_backend
-	this_dir = os.path.dirname(os.path.abspath(__file__))  # .../backend/pharmatrack
-	candidate = os.path.abspath(os.path.join(this_dir, '..', 'pharmatrack_backend'))
-	if os.path.isdir(candidate) and candidate not in sys.path:
-		sys.path.insert(0, candidate)
-	# Try importing the module by name now that sys.path may include the package
-	module = importlib.import_module('pharmatrack.wsgi')
-	application = getattr(module, 'application')
+# Add the backend directory to Python path
+backend_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+if backend_path not in sys.path:
+    sys.path.insert(0, backend_path)
 
-# `application` is now available as pharmatrack.wsgi.application
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pharmatrack.settings')
+
+application = get_wsgi_application()
+
+

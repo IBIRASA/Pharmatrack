@@ -66,7 +66,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
 ]
 
-ROOT_URLCONF = 'pharmatrack_backend.urls'
+ROOT_URLCONF = 'pharmatrack.urls'
 
 TEMPLATES = [
     {
@@ -84,7 +84,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'pharmatrack_backend.wsgi.application'
+WSGI_APPLICATION = 'pharmatrack.wsgi.application'
 
 DATABASES = {
     'default': {
