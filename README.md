@@ -124,6 +124,7 @@ MongoDB hosted on: [MongoDBCompass]
 
 Watch a 5–10 minute demonstration of Pharmatrack’s functionality:
 Link : https://www.youtube.com/watch?v=veYHoQDyXLY
+Final version of my product : https://youtu.be/Df-kgRvOu5c
 
 ## Repo Link
 
@@ -132,7 +133,7 @@ Link : https://www.youtube.com/watch?v=veYHoQDyXLY
 
 ```
 
-## Deployed Links
+## Live Links
 
 ### Backend
 
