@@ -37,7 +37,7 @@ except ModuleNotFoundError:
 	if os.path.isdir(candidate) and candidate not in sys.path:
 		sys.path.insert(0, candidate)
 	# Try importing the module by name now that sys.path may include the package
-	module = importlib.import_module('pharmatrack_backend.wsgi')
+	module = importlib.import_module('pharmatrack.wsgi')
 	application = getattr(module, 'application')
 
 # `application` is now available as pharmatrack.wsgi.application
