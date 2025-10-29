@@ -8,19 +8,3 @@ psycopg2-binary
 dj-database-url
 whitenoise
 mongoengine==0.29.1
-pharmatrack_backend/db.sqlite3
-staticfiles/
-__pycache__/
-*.pyc
-
-services:
-  - type: web
-    name: pharmatrack-backend
-    env: python
-    region: oregon
-    repo: IBIRASA/Pharmatrack
-    branch: main
-    root: backend
-    buildCommand: ./build_release.sh
-    startCommand: gunicorn pharmatrack_backend.wsgi:application --log-file -
-    plan: free
