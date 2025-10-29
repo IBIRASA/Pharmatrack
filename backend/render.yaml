@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: pharmatrack-backend
+    env: python
+    plan: free
+    branch: main
+    rootDirectory: backend
+    buildCommand: chmod +x build_release.sh && ./build_release.sh
+    startCommand: gunicorn pharmatrack_backend.wsgi:application --log-file -
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.18
+      - key: DJANGO_SETTINGS_MODULE
+        value: pharmatrack_backend.settings
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
