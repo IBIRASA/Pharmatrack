@@ -1144,25 +1144,48 @@ export default function InventoryManager() {
   };
 
   // Called after successful sale from modal
-  const onSold = (order: any, qty: number) => {
-    if (!selectedMed) return;
-    
+  // const onSold = (order: any, qty: number) => {
+  //   if (!selectedMed) return;
+  const onSold = async (order: any, qty: number) => {
+  if (!selectedMed) return;
+  
+  console.log(` Updating UI for medicine ${selectedMed.id}, sold ${qty} units`);
     // Update local state immediately for better UX
-    const updatedMedicines = medicines.map(m => 
-      m.id === selectedMed.id 
-        ? { ...m, stock_quantity: Math.max(0, m.stock_quantity - qty) } 
-        : m
-    );
-    
-    setMedicines(updatedMedicines);
-    
-    // Show success message
-    alert(`Successfully sold ${qty} units of ${selectedMed.name}! Total: $${order.total_amount}`);
-    
-    // Reset state
-    setSelectedMed(null);
-    setSellOpen(false);
+      setMedicines(prev =>
+    prev.map(m => m.id === selectedMed.id ? { 
+      ...m, 
+      stock_quantity: Math.max(0, m.stock_quantity - qty),
+      is_low_stock: (m.stock_quantity - qty) <= m.minimum_stock
+    } : m)
+  );
+  
+  // Update filtered view as well
+  setFiltered(prev =>
+    prev.map(m => m.id === selectedMed.id ? { 
+      ...m, 
+      stock_quantity: Math.max(0, m.stock_quantity - qty),
+      is_low_stock: (m.stock_quantity - qty) <= m.minimum_stock
+    } : m)
+  );
+  
+  setSelectedMed(null);
+  setSellOpen(false);
+  
+  // Force refresh patient dashboard data
+  await refreshPatientDashboard();
   };
+  const refreshPatientDashboard = async () => {
+  try {
+    // This will trigger a re-fetch in the patient dashboard
+    console.log('🔄 Refreshing patient dashboard data...');
+    
+    // You can also broadcast a custom event that the patient dashboard can listen to
+    window.dispatchEvent(new CustomEvent('medicineStockUpdated'));
+    
+  } catch (error) {
+    console.error('Error refreshing patient dashboard:', error);
+  }
+}
 
   // Calculate statistics
   const totalItems = medicines.length;
