@@ -18,7 +18,19 @@ class MedicineSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['pharmacy', 'pharmacy_name', 'pharmacy_id', 'pharmacy_email', 'created_at', 'updated_at']
 
+class SellRequestSerializer(serializers.Serializer):
+    medicine_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(min_value=1)
+    # optional customer info (we store name/phone on Order model)
+    customer = serializers.DictField(child=serializers.CharField(), required=False)
 
+class OrderItemSerializer(serializers.ModelSerializer):
+    medicine = MedicineSerializer(read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'medicine', 'quantity', 'unit_price', 'subtotal']
+        
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
