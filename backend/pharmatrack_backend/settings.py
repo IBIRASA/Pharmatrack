@@ -64,6 +64,7 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
+   ' https://pharmatrack-wb0c.onrender.com',
 ]
 
 ROOT_URLCONF = 'pharmatrack_backend.urls'
