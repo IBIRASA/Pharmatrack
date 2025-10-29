@@ -17,7 +17,17 @@ class Pharmacy(models.Model):
 
     class Meta:
         verbose_name_plural = "Pharmacies"
+class Customer(models.Model):
+    name = models.CharField(max_length=200, blank=True)
+    email = models.EmailField(blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.email or self.name or f"Customer {self.pk}"
 class Medicine(models.Model):
     pharmacy = models.ForeignKey(User, on_delete=models.CASCADE, related_name='medicines')
     name = models.CharField(max_length=200)
@@ -43,6 +53,16 @@ class Medicine(models.Model):
     @property
     def is_low_stock(self):
         return self.stock_quantity <= self.minimum_stock
+    def reduce_stock(self, qty: int):
+        if qty <= 0:
+            raise ValueError("Quantity must be greater than zero")
+        if self.stock_quantity < qty:
+            raise ValueError("Insufficient stock")
+        self.stock_quantity = self.stock_quantity - qty
+        self.updated_at = models.DateTimeField(auto_now=True)  # no-op here, we still save below
+        # Save only the changed field
+        self.save(update_fields=["stock_quantity", "updated_at"])
+
 
 class Sale(models.Model):
     pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, related_name='sales')
