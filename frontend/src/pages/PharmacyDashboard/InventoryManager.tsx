@@ -8,8 +8,10 @@
 //   Loader as LoaderIcon,
 //   AlertCircle as AlertCircleIcon,
 //   X,
+//   Info,
 // } from 'lucide-react';
-// import { getMedicines, createMedicine, updateMedicine, deleteMedicine } from '../../utils/api';
+// import { getMedicines, createMedicine, updateMedicine, deleteMedicine,sellMedicine } from '../../utils/api';
+
 
 // interface Medicine {
 //   id: number;
@@ -289,86 +291,157 @@
 
 //             <form onSubmit={handleSubmit} className="p-6 space-y-4">
 //               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//                 <input
-//                   type="text"
-//                   required
-//                   placeholder="Medicine Name *"
-//                   value={formData.name}
-//                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-//                 />
-//                 <input
-//                   type="text"
-//                   placeholder="Generic Name"
-//                   value={formData.generic_name}
-//                   onChange={(e) => setFormData({ ...formData, generic_name: e.target.value })}
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-//                 />
-//                 <input
-//                   type="text"
-//                   required
-//                   placeholder="Manufacturer *"
-//                   value={formData.manufacturer}
-//                   onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-//                 />
-//                 <input
-//                   type="text"
-//                   required
-//                   placeholder="Category *"
-//                   value={formData.category}
-//                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-//                 />
-//                 <input
-//                   type="text"
-//                   required
-//                   placeholder="Dosage (e.g., 500mg) *"
-//                   value={formData.dosage}
-//                   onChange={(e) => setFormData({ ...formData, dosage: e.target.value })}
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-//                 />
-//                 <input
-//                   type="number"
-//                   step="0.01"
-//                   required
-//                   placeholder="Unit Price *"
-//                   value={formData.unit_price}
-//                   onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-//                 />
-//                 <input
-//                   type="number"
-//                   required
-//                   placeholder="Stock Quantity *"
-//                   value={formData.stock_quantity}
-//                   onChange={(e) => setFormData({ ...formData, stock_quantity: parseInt(e.target.value || '0') })}
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-//                 />
-//                 <input
-//                   type="number"
-//                   required
-//                   placeholder="Minimum Stock *"
-//                   value={formData.minimum_stock}
-//                   onChange={(e) => setFormData({ ...formData, minimum_stock: parseInt(e.target.value || '0') })}
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-//                 />
-//                 <input
-//                   type="date"
-//                   required
-//                   placeholder="Expiry Date *"
-//                   value={formData.expiry_date}
-//                   onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-1">
+//                     Medicine Name <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="text"
+//                     required
+//                     placeholder="e.g., Paracetamol"
+//                     value={formData.name}
+//                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+//                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-1">
+//                     Generic Name
+//                   </label>
+//                   <input
+//                     type="text"
+//                     placeholder="e.g., Acetaminophen"
+//                     value={formData.generic_name}
+//                     onChange={(e) => setFormData({ ...formData, generic_name: e.target.value })}
+//                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-1">
+//                     Manufacturer <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="text"
+//                     required
+//                     placeholder="e.g., Pfizer"
+//                     value={formData.manufacturer}
+//                     onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
+//                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-1">
+//                     Category <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="text"
+//                     required
+//                     placeholder="e.g., Pain Relief, Antibiotic"
+//                     value={formData.category}
+//                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+//                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-1">
+//                     Dosage <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="text"
+//                     required
+//                     placeholder="e.g., 500mg, 10ml"
+//                     value={formData.dosage}
+//                     onChange={(e) => setFormData({ ...formData, dosage: e.target.value })}
+//                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-1">
+//                     Unit Price ($) <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="number"
+//                     step="0.01"
+//                     min="0"
+//                     required
+//                     placeholder="e.g., 5.99"
+//                     value={formData.unit_price}
+//                     onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
+//                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-1">
+//                     Current Stock Quantity <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="number"
+//                     required
+//                     min="0"
+//                     placeholder="e.g., 500"
+//                     value={formData.stock_quantity}
+//                     onChange={(e) => setFormData({ ...formData, stock_quantity: parseInt(e.target.value || '0') })}
+//                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//                   />
+//                   <div className="flex items-start gap-1 mt-1">
+//                     <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+//                     <p className="text-xs text-gray-500">Number of units currently in stock</p>
+//                   </div>
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-1">
+//                     Minimum Stock Level <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="number"
+//                     required
+//                     min="0"
+//                     placeholder="e.g., 50"
+//                     value={formData.minimum_stock}
+//                     onChange={(e) => setFormData({ ...formData, minimum_stock: parseInt(e.target.value || '0') })}
+//                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//                   />
+//                   <div className="flex items-start gap-1 mt-1">
+//                     <AlertCircleIcon className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+//                     <p className="text-xs text-gray-500">You'll be alerted when stock falls below this level</p>
+//                   </div>
+//                 </div>
+
+//                 <div className="md:col-span-2">
+//                   <label className="block text-sm font-medium text-gray-700 mb-1">
+//                     Expiry Date <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="date"
+//                     required
+//                     min={new Date().toISOString().split('T')[0]}
+//                     value={formData.expiry_date}
+//                     onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
+//                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//                   />
+//                 </div>
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Description
+//                 </label>
+//                 <textarea
+//                   rows={3}
+//                   placeholder="Additional information about the medicine (optional)"
+//                   value={formData.description}
+//                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
 //                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
 //                 />
 //               </div>
-//               <textarea
-//                 rows={3}
-//                 placeholder="Description (optional)"
-//                 value={formData.description}
-//                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-//                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-//               />
+
 //               <div className="flex items-center justify-end gap-3 pt-4">
 //                 <button
 //                   type="button"
@@ -391,7 +464,6 @@
 //     </div>
 //   );
 // }
-
 import React, { useEffect, useState } from 'react';
 import {
   Package as PackageIcon,
@@ -403,8 +475,10 @@ import {
   AlertCircle as AlertCircleIcon,
   X,
   Info,
+  ShoppingCart,
 } from 'lucide-react';
-import { getMedicines, createMedicine, updateMedicine, deleteMedicine } from '../../utils/api';
+import { getMedicines, createMedicine, updateMedicine, deleteMedicine, sellMedicine } from '../../utils/api';
+import SellMedicine from '../../components/modals/SellMedicineModal';
 
 interface Medicine {
   id: number;
@@ -443,6 +517,10 @@ export default function InventoryManager() {
     description: '',
   });
 
+  // Sell modal state
+  const [sellOpen, setSellOpen] = useState(false);
+  const [selectedMed, setSelectedMed] = useState<Medicine | null>(null);
+
   useEffect(() => { loadMedicines(); }, []);
 
   useEffect(() => {
@@ -465,6 +543,8 @@ export default function InventoryManager() {
       setLoading(true);
       const data = await getMedicines();
       setMedicines(data);
+    } catch (err) {
+      console.error('Failed to load medicines', err);
     } finally {
       setLoading(false);
     }
@@ -531,6 +611,26 @@ export default function InventoryManager() {
       expiry_date: '',
       description: '',
     });
+  };
+
+  // Open sell modal
+  const openSell = (m: Medicine) => {
+    setSelectedMed(m);
+    setSellOpen(true);
+  };
+
+  // Called after successful sale from modal
+  const onSold = (order: any, qty: number) => {
+    if (!selectedMed) return;
+    setMedicines(prev =>
+      prev.map(m => m.id === selectedMed.id ? { ...m, stock_quantity: Math.max(0, m.stock_quantity - qty) } : m)
+    );
+    // Update filtered view as well
+    setFiltered(prev =>
+      prev.map(m => m.id === selectedMed.id ? { ...m, stock_quantity: Math.max(0, m.stock_quantity - qty) } : m)
+    );
+    setSelectedMed(null);
+    setSellOpen(false);
   };
 
   if (loading) {
@@ -636,26 +736,35 @@ export default function InventoryManager() {
                       <p className="text-xs text-gray-500">Min: {m.minimum_stock}</p>
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                      ${parseFloat(m.unit_price).toFixed(2)}
+                      ${parseFloat(String(m.unit_price)).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
                       {new Date(m.expiry_date).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => handleEdit(m)} 
+                        <button
+                          onClick={() => handleEdit(m)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Edit medicine"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button 
-                          onClick={() => handleDelete(m.id)} 
+                        <button
+                          onClick={() => handleDelete(m.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete medicine"
                         >
                           <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => openSell(m)}
+                          className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-md text-sm hover:bg-emerald-200"
+                          disabled={m.stock_quantity <= 0}
+                          title="Sell medicine"
+                        >
+                           <ShoppingCart className="w-4 h-4" />
+                          <span className="ml-2">Sell</span>
                         </button>
                       </div>
                     </td>
@@ -674,7 +783,7 @@ export default function InventoryManager() {
               <h3 className="text-lg font-semibold text-gray-900">
                 {editing ? 'Edit Medicine' : 'Add New Medicine'}
               </h3>
-              <button 
+              <button
                 onClick={() => { setShowModal(false); setEditing(null); resetForm(); }}
                 className="text-gray-600 hover:text-gray-800 transition-colors"
               >
@@ -854,6 +963,13 @@ export default function InventoryManager() {
           </div>
         </div>
       )}
+
+      <SellMedicine
+        open={sellOpen}
+        onClose={() => { setSellOpen(false); setSelectedMed(null); }}
+        medicine={selectedMed}
+        onSold={(order: any, qty: number) => onSold(order, qty)}
+      />
     </div>
   );
 }
