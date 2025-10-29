@@ -1,6 +1,5 @@
 # Render service template for the Django backend
 # Adjust 'repo' and 'branch' as needed before importing in Render.
-
 services:
   - type: web
     name: pharmatrack-backend
