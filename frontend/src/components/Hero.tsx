@@ -6,7 +6,7 @@ export default function Hero() {
   return (
     <section className="bg-linear-to-br bg-white min-h-screen flex items-center">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="grid md:grid-cols-2 gap-80 items-center">
           {/*  Left Content */}
           <div   data-aos="fade-down"         
       data-aos-duration="1000">
@@ -39,7 +39,7 @@ export default function Hero() {
             <img
               src={landingimage}
               alt="Pharmacy"
-              className="rounded-2xl shadow-2xl w-full h-full object-cover"
+              className="rounded-2xl shadow-2xl w-md h-md object-cover"
             />
             <div className="absolute -bottom-6 -left-15 bg-white p-2 rounded-xl shadow-xl">
               <div className="flex items-center gap-4">

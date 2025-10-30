@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import PatientDashboard from "./pages/PatientDashboard/PatientDashboard";
 import PharmacyDashboard from "./pages/PharmacyDashboard/PharmacyDashboard";
 import LandingPage from "./pages/LandingPage";
+import NotFound from "./pages/NotFound";
 
 function ProtectedRoute({ children }: { children: React.ReactElement }) {
   const token = localStorage.getItem("token");
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
         <Route
           path="/patient-dashboard"
           element={
@@ -36,6 +38,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/pharmacy-dashboard/*"
           element={
@@ -44,7 +47,9 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+
+        {/* single catch-all route for unmatched URLs */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
