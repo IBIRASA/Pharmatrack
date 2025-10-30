@@ -17,18 +17,35 @@ import { getDashboardStats } from "../../utils/api";
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Title, Tooltip, Filler, Legend);
 
+interface Stats {
+  today_sales: number;
+  expired_items: number;
+  low_stock_items: number;
+  total_medicines: number;
+  weekly_sales?: number[];
+}
+
+type CardColorKey = "blue" | "red" | "orange" | "green";
+
+type StatCard = {
+  title: string;
+  value: React.ReactNode;
+  icon: React.ReactElement;
+  color: CardColorKey;
+};
+
 const DashboardAnalytics: React.FC = () => {
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<Stats>({
     today_sales: 0,
     expired_items: 0,
     low_stock_items: 0,
     total_medicines: 0,
+    weekly_sales: [],
   });
-  const [weeklySales, setWeeklySales] = useState<number[]>([]);
+  const [weeklySales, setWeeklySales] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
   const [loading, setLoading] = useState(true);
 
   const chartRef = useRef<HTMLCanvasElement | null>(null);
-  // Make the ref typed for a line chart with number[] data and string labels
   const chartInstance = useRef<Chart<"line", number[], string> | null>(null);
 
   useEffect(() => {
@@ -49,7 +66,10 @@ const DashboardAnalytics: React.FC = () => {
     try {
       const data = await getDashboardStats();
       setStats(data);
-      setWeeklySales(data.weekly_sales || []);
+      // ensure we always pass an array of 7 numbers to the chart
+      const wk = (data.weekly_sales && Array.isArray(data.weekly_sales) ? data.weekly_sales : []);
+      const padded = [...wk].concat(Array(7 - wk.length).fill(0)).slice(0, 7).map(n => Number(n || 0));
+      setWeeklySales(padded);
     } catch (error) {
       console.error("Load stats error:", error);
     } finally {
@@ -75,47 +95,47 @@ const DashboardAnalytics: React.FC = () => {
           fill: true,
         }],
       },
-      options: { 
-        responsive: true, 
+      options: {
+        responsive: true,
         maintainAspectRatio: false,
-        plugins: { 
+        plugins: {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              // type the context and guard the value
+              // safer handling of parsed values across Chart.js versions
               label: (context: TooltipItem<"line">) => {
-                const y = typeof context.parsed.y === "number" ? context.parsed.y : 0;
+                // parsed can be a number or an object {x, y}
+                const parsed = (context.parsed as any);
+                const y = typeof parsed === "number" ? parsed : (parsed && typeof parsed.y === "number" ? parsed.y : 0);
                 return `Sales: $${y.toFixed(2)}`;
               },
-              // Alternatively (simpler): use formattedValue
-              // label: (context: TooltipItem<"line">) => `Sales: $${context.formattedValue}`,
-            }
-          }
+            },
+          },
         },
         scales: {
           y: {
             beginAtZero: true,
             ticks: {
-              callback: (value: number | string) => `$${value}`
-            }
-          }
-        }
+              callback: (value: number | string) => `$${value}`,
+            },
+          },
+        },
       },
     });
   };
 
-  const colorClasses = {
+  const colorClasses: Record<CardColorKey, { border: string; bg: string; text: string }> = {
     blue: { border: "border-blue-500", bg: "bg-blue-100", text: "text-blue-600" },
     red: { border: "border-red-500", bg: "bg-red-100", text: "text-red-600" },
     orange: { border: "border-orange-500", bg: "bg-orange-100", text: "text-orange-600" },
     green: { border: "border-green-500", bg: "bg-green-100", text: "text-green-600" },
   };
 
-  const cards = [
-    { title: "Today's Sales", value: `$${stats.today_sales.toFixed(2)}`, icon: <TrendingUp />, color: "blue" as const },
-    { title: "Low Stock Items", value: stats.low_stock_items, icon: <AlertTriangle />, color: "red" as const },
-    { title: "Expired Items", value: stats.expired_items, icon: <CalendarX />, color: "orange" as const },
-    { title: "Total Medicines", value: stats.total_medicines, icon: <Package />, color: "green" as const },
+  const cards: StatCard[] = [
+    { title: "Today's Sales", value: `$${stats.today_sales.toFixed(2)}`, icon: <TrendingUp />, color: "blue" },
+    { title: "Low Stock Items", value: stats.low_stock_items, icon: <AlertTriangle />, color: "red" },
+    { title: "Expired Items", value: stats.expired_items, icon: <CalendarX />, color: "orange" },
+    { title: "Total Medicines", value: stats.total_medicines, icon: <Package />, color: "green" },
   ];
 
   return (
@@ -139,7 +159,7 @@ const DashboardAnalytics: React.FC = () => {
                 >
                   <div className="flex items-center justify-between">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors.bg} ${colors.text}`}>
-                      {React.cloneElement(card.icon, { size: 24 })}
+                      {React.cloneElement(card.icon as React.ReactElement, { size: 24 })}
                     </div>
                     <span className="text-3xl font-bold text-gray-800">{card.value}</span>
                   </div>
@@ -152,8 +172,9 @@ const DashboardAnalytics: React.FC = () => {
           {/* Sales Chart */}
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-md p-6 flex flex-col">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Weekly Sales</h2>
-            <div className="flex-1 min-h-[300px]">
-              <canvas ref={chartRef}></canvas>
+            <div className="flex-1 min-h-[160px] md:min-h-[300px]">
+              {/* force canvas height so Chart.js can calculate properly on mobile */}
+              <canvas ref={chartRef} className="w-full h-56 md:h-72" />
             </div>
           </div>
         </div>

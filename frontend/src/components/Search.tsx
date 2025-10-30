@@ -1,4 +1,5 @@
 import bgImage from "../assets/bgImage.png";
+import { Link } from "react-router-dom";
 function Search() {
 
   return (
@@ -16,14 +17,12 @@ function Search() {
           With PharmaTrack, patients and pharmacies manage everything in one place.
           Patients can search medicines, check nearby availability, and get directions easily.
         </p>
-        <button className="mt-6 bg-green-900 px-6 py-3 rounded-lg hover:bg-green-700">
+        <Link to="/login" className="mt-6 inline-block bg-green-900 px-6 py-3 rounded-lg hover:bg-green-700">
           Search Medicine
-        </button>
+        </Link>
       </div>
     </section>
   );
 };
-
-
 
 export default Search

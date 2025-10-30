@@ -801,6 +801,7 @@ export interface Sale {
 }
 
 export interface DashboardStats {
+  weekly_sales: never[];
   total_revenue: string;
   total_sales: number;
   today_sales: number;
@@ -1240,7 +1241,7 @@ export const mockAPI = {
 // Enhanced version that tries real API first, falls back to mock
 export const sellMedicineEnhanced = async (saleData: any): Promise<Sale> => {
   try {
-    console.log('🔄 Trying real API endpoint...');
+    console.log(' Trying real API endpoint...');
     
     const payload = {
       medicine_id: Number(saleData.medicine_id),
