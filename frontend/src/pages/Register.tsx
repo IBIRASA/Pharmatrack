@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { registerUser } from "../utils/api";
-import { UserPlus, Mail, Lock, User, Phone, MapPin, AlertCircle } from "lucide-react";
+import { UserPlus, Mail, Lock, User, Phone, MapPin, AlertCircle,Hospital } from "lucide-react";
 import logo from "../assets/logo.png";
 export default function Register() {
   const navigate = useNavigate();
@@ -99,7 +99,7 @@ export default function Register() {
                     : "border-gray-200 hover:border-gray-300"
                 }`}
               >
-                <MapPin className="w-6 h-6 mx-auto mb-2" />
+                <Hospital className="w-6 h-6 mx-auto mb-2" />
                 <span className="font-semibold">Pharmacy</span>
               </button>
             </div>
