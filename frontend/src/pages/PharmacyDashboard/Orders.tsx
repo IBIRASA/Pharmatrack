@@ -230,8 +230,6 @@ export default function Orders() {
           </div>
         </div>
       )}
-
-      {/* Summary */}
       {orders.length > 0 && (
         <div className="grid grid-cols-4 gap-4">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

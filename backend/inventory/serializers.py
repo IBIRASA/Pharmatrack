@@ -17,11 +17,14 @@ class MedicineSerializer(serializers.ModelSerializer):
             'description', 'is_low_stock', 'created_at', 'updated_at'
         ]
         read_only_fields = ['pharmacy', 'pharmacy_name', 'pharmacy_id', 'pharmacy_email', 'created_at', 'updated_at']
+    def validate_stock_quantity(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError("stock_quantity cannot be negative")
+        return value
 
 class SellRequestSerializer(serializers.Serializer):
     medicine_id = serializers.IntegerField()
     quantity = serializers.IntegerField(min_value=1)
-    # optional customer info (we store name/phone on Order model)
     customer = serializers.DictField(child=serializers.CharField(), required=False)
 
 class OrderItemSerializer(serializers.ModelSerializer):

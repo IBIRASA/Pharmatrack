@@ -44,7 +44,6 @@ export default function Sales() {
       const data = await getMedicines();
       const available = data.filter((m: Medicine) => m.stock_quantity > 0);
       setMedicines(available);
-      // Initialize quantities to 1 for each medicine
       const initialQty: { [key: number]: number } = {};
       available.forEach((m: Medicine) => {
         initialQty[m.id] = 1;
@@ -109,7 +108,6 @@ export default function Sales() {
       ]);
     }
 
-    // Reset quantity selector to 1 after adding
     setQuantities({ ...quantities, [medicine.id]: 1 });
   };
 

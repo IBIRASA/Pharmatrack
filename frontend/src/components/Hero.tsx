@@ -4,9 +4,9 @@ import landingimage from '../assets/user.png';
 
 export default function Hero() {
   return (
-    <section className="bg-linear-to-br bg-white min-h-screen flex items-center">
+    <section id="about" className="bg-linear-to-br bg-white min-h-screen flex items-center">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="grid md:grid-cols-2 gap-80 items-center">
+        <div className="grid md:grid-cols-2 gap-32 items-center">
           {/*  Left Content */}
           <div   data-aos="fade-down"         
       data-aos-duration="1000">

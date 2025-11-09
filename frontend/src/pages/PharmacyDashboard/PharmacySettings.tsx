@@ -25,7 +25,6 @@ export default function PharmacySettings() {
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement profile update API call
     alert("Profile updated successfully!");
   };
 
@@ -35,14 +34,12 @@ export default function PharmacySettings() {
       alert("Passwords do not match!");
       return;
     }
-    // TODO: Implement password change API call
     alert("Password changed successfully!");
     setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
   };
 
   const handleNotificationChange = (key: string, value: boolean) => {
     setNotificationSettings({ ...notificationSettings, [key]: value });
-    // TODO: Save to backend
   };
 
   return (

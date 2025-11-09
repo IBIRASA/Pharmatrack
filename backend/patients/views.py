@@ -14,11 +14,11 @@ class SearchMedicineView(APIView):
         if not medicine_name:
             return Response({"error": "Medicine name required"}, status=400)
         
-        # Find all medicines that match the search (case-insensitive, partial match)
+        # Find all medicines that match the search 
         medicines = Medicine.objects(name__icontains=medicine_name, quantity__gt=0)
         
         results = []
-        seen_pharmacies = set()  # Avoid duplicate pharmacies
+        seen_pharmacies = set() 
         
         for med in medicines:
             # Skip if we already added this pharmacy
