@@ -53,91 +53,51 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
   const totalPrice = parseFloat(medicine.unit_price) * quantity;
   const maxQuantity = medicine.stock_quantity;
 
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setError('');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-//     if (!customerName.trim()) {
-//       setError('Customer name is required');
-//       return;
-//     }
+    if (!medicine) return;
 
-//     if (quantity <= 0) {
-//       setError('Quantity must be greater than 0');
-//       return;
-//     }
+    setLoading(true);
+    try {
+      const orderData = {
+        medicine_id: medicine.id,
+        quantity: quantity,
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        prescription: prescription,
+        total_price: totalPrice.toFixed(2) 
+      };
 
-//     if (quantity > maxQuantity) {
-//       setError(`Cannot sell more than ${maxQuantity} units (available stock)`);
-//       return;
-//     }
-
-//     setLoading(true);
-//     try {
-//       const saleData = {
-//         medicine_id: medicine.id,
-//         quantity: quantity,
-//         customer_name: customerName.trim(),
-//         customer_phone: customerPhone.trim(),
-//         prescription: prescription.trim() || null
-//       };
-
-//       console.log('Sending sale data:', saleData); // Debug log
-
-//       const result = await sellMedicine(saleData);
+      console.log('Submitting order data:', orderData);
       
-//       console.log('Sale successful:', result); // Debug log
-      
-//       // Notify parent component
-//       onSold(result, quantity);
-      
-//       // Close modal
-//       onClose();
-//     } catch (error: any) {
-//       console.error('Error selling medicine:', error);
-//       setError(error.message || 'Failed to process sale. Please try again.');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  if (!medicine) return;
+      const result = await sellMedicine(orderData);
+      const payload = {
+        medicine_id: medicine.id,
+        quantity,
+        serverResponse: result,
+      };
 
-  setLoading(true);
-  try {
-    const orderData = {
-      medicine_id: medicine.id, // Ensure this is a number
-      quantity: quantity, // Ensure this is a number
-      customer_name: customerName,
-      customer_phone: customerPhone,
-      prescription: prescription,
-      total_price: totalPrice.toFixed(2) // Ensure this is string with 2 decimals
-    };
-
-    console.log('Submitting order data:', orderData);
-    
-    const result = await sellMedicine(orderData);
-    onSold(result, quantity);
-    onClose();
-    
-  } catch (error: any) {
-    console.error('Error selling medicine:', error);
-    alert(`Sale failed: ${error.message}`);
-  } finally {
-    setLoading(false);
-  }
-};
-  const handleQuantityChange = (value: string) => {
-    const newQuantity = parseInt(value) || 0;
-    if (newQuantity <= maxQuantity) {
-      setQuantity(newQuantity);
+      onSold(payload, quantity);
+      onClose();
+      
+    } catch (error: any) {
+      console.error('Error selling medicine:', error);
+      const msg = error?.detail || error?.message || JSON.stringify(error);
+      alert(`Sale failed: ${msg}`);
+    } finally {
+      setLoading(false);
     }
+  };
+  const handleQuantityChange = (value: string) => {
+    let newQuantity = parseInt(value, 10) || 0;
+    if (newQuantity < 1) newQuantity = 1;
+    if (newQuantity > maxQuantity) newQuantity = maxQuantity;
+    setQuantity(newQuantity);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0  bg-black/30 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-4 border-b flex items-center justify-between sticky top-0 bg-white">
           <div className="flex items-center gap-2">
@@ -291,3 +251,55 @@ const handleSubmit = async (e: React.FormEvent) => {
 };
 
 export default SellMedicineModal;
+
+// Called after successful sale from modal
+// const onSold = async (arg1: any, arg2?: number) => {
+//   console.debug('onSold called with:', { arg1, arg2, selectedMed });
+
+//   // Normalize inputs: prefer explicit second argument (quantity)
+//   let soldQty = Number(arg2 ?? 0);
+//   let medId: number | undefined;
+
+//   if (arg1 && typeof arg1 === 'object') {
+//     // payload created by modal { medicine_id, quantity, serverResponse }
+//     medId = Number(arg1.medicine_id ?? arg1.med_id ?? arg1.serverResponse?.medicine_id ?? selectedMed?.id);
+//     if (!soldQty) soldQty = Number(arg1.quantity ?? arg1.serverResponse?.quantity ?? arg1.serverResponse?.soldQuantity ?? 0);
+//   }
+
+//   // fallback to selectedMed if medId missing
+//   medId = medId ?? selectedMed?.id;
+
+//   if (!medId || soldQty <= 0) {
+//     console.warn('onSold: invalid medId or soldQty', { medId, soldQty });
+//     setSelectedMed(null);
+//     setSellOpen(false);
+//     return;
+//   }
+
+//   // Functional update to avoid stale closures
+//   setMedicines((prev) =>
+//     prev.map((m) => (m.id === medId ? { ...m, stock_quantity: Math.max(0, m.stock_quantity - soldQty), is_low_stock: Math.max(0, m.stock_quantity - soldQty) <= m.minimum_stock } : m))
+//   );
+
+//   // Update filtered list similarly
+//   setFiltered((prev) =>
+//     prev.map((m) => (m.id === medId ? { ...m, stock_quantity: Math.max(0, m.stock_quantity - soldQty), is_low_stock: Math.max(0, m.stock_quantity - soldQty) <= m.minimum_stock } : m))
+//   );
+
+//   setSelectedMed(null);
+//   setSellOpen(false);
+
+//   (async () => {
+//     try {
+//       await loadMedicines();
+//     } catch (err) {
+//       console.error('Error refreshing medicines after sale:', err);
+//     }
+//   })();
+
+//   try {
+//     await refreshPatientDashboard();
+//   } catch (err) {
+//     console.error('Error notifying dashboard:', err);
+//   }
+// };

@@ -65,9 +65,16 @@ const DashboardAnalytics: React.FC = () => {
     setLoading(true);
     try {
       const data = await getDashboardStats();
-      setStats(data);
+      // Map API DashboardStats to the local Stats shape
+      setStats({
+        today_sales: Number(data.today_sales) || 0,
+        expired_items: (data as any).expired_items || 0,
+        low_stock_items: data.low_stock_items || 0,
+        total_medicines: (data as any).total_medicines || 0,
+        weekly_sales: Array.isArray(data.weekly_sales) ? data.weekly_sales.map(n => Number(n || 0)) : [],
+      });
       // ensure we always pass an array of 7 numbers to the chart
-      const wk = (data.weekly_sales && Array.isArray(data.weekly_sales) ? data.weekly_sales : []);
+      const wk = (Array.isArray(data.weekly_sales) ? data.weekly_sales : []);
       const padded = [...wk].concat(Array(7 - wk.length).fill(0)).slice(0, 7).map(n => Number(n || 0));
       setWeeklySales(padded);
     } catch (error) {
@@ -102,9 +109,7 @@ const DashboardAnalytics: React.FC = () => {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              // safer handling of parsed values across Chart.js versions
               label: (context: TooltipItem<"line">) => {
-                // parsed can be a number or an object {x, y}
                 const parsed = (context.parsed as any);
                 const y = typeof parsed === "number" ? parsed : (parsed && typeof parsed.y === "number" ? parsed.y : 0);
                 return `Sales: $${y.toFixed(2)}`;
@@ -159,7 +164,7 @@ const DashboardAnalytics: React.FC = () => {
                 >
                   <div className="flex items-center justify-between">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors.bg} ${colors.text}`}>
-                      {React.cloneElement(card.icon as React.ReactElement, { size: 24 })}
+                      {React.cloneElement(card.icon as React.ReactElement, { size: 24 } as any)}
                     </div>
                     <span className="text-3xl font-bold text-gray-800">{card.value}</span>
                   </div>
@@ -173,7 +178,6 @@ const DashboardAnalytics: React.FC = () => {
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-md p-6 flex flex-col">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Weekly Sales</h2>
             <div className="flex-1 min-h-[160px] md:min-h-[300px]">
-              {/* force canvas height so Chart.js can calculate properly on mobile */}
               <canvas ref={chartRef} className="w-full h-56 md:h-72" />
             </div>
           </div>

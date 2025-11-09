@@ -59,8 +59,7 @@ class Medicine(models.Model):
         if self.stock_quantity < qty:
             raise ValueError("Insufficient stock")
         self.stock_quantity = self.stock_quantity - qty
-        self.updated_at = models.DateTimeField(auto_now=True)  # no-op here, we still save below
-        # Save only the changed field
+        self.updated_at = models.DateTimeField(auto_now=True)
         self.save(update_fields=["stock_quantity", "updated_at"])
 
 

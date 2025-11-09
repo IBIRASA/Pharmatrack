@@ -2,8 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { MapPin, Phone, Clock, Loader, ExternalLink, RefreshCcw } from 'lucide-react';
 import { getNearbyPharmacies } from '../../utils/api';
 import type { NearbyPharmacy } from '../../utils/api';
-
-// --- Types ---
 interface NearbyPharmacyModalProps {
   isOpen: boolean;
   onClose: () => void;

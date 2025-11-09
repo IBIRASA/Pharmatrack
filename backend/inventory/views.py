@@ -16,6 +16,9 @@ from .serializers import MedicineSerializer, OrderSerializer,SellRequestSerializ
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def dashboard_stats(request):
+    """
+    Return dashboard stats including dynamic low_stock_count.
+    """
     user = request.user
     if user.user_type != 'pharmacy':
         return Response({'error': 'Pharmacy access only'}, status=403)
@@ -71,7 +74,7 @@ def medicine_list(request):
                     Q(generic_name__icontains=search) |
                     Q(category__icontains=search)
                 )
-            print(f"Patient search: '{search}', Found: {medicines.count()} medicines")  # Debug
+            print(f"Patient search: '{search}', Found: {medicines.count()} medicines")  
         else:
             # Pharmacy sees only their own medicines
             medicines = Medicine.objects.filter(pharmacy=request.user)
@@ -81,7 +84,7 @@ def medicine_list(request):
                     Q(name__icontains=search) | 
                     Q(generic_name__icontains=search)
                 )
-            print(f"Pharmacy view: Found {medicines.count()} medicines")  # Debug
+            print(f"Pharmacy view: Found {medicines.count()} medicines")  
         
         serializer = MedicineSerializer(medicines, many=True)
         return Response(serializer.data)
@@ -100,33 +103,32 @@ def medicine_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-@api_view(['GET', 'PUT', 'DELETE'])
+# ...existing code...
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def medicine_detail(request, pk):
     try:
-        # Pharmacy can only access their own medicines
         if request.user.user_type != 'pharmacy':
             return Response({'error': 'Pharmacy access only'}, status=status.HTTP_403_FORBIDDEN)
-            
         medicine = Medicine.objects.get(pk=pk, pharmacy=request.user)
     except Medicine.DoesNotExist:
         return Response({'error': 'Medicine not found'}, status=status.HTTP_404_NOT_FOUND)
-    
+
     if request.method == 'GET':
         serializer = MedicineSerializer(medicine)
         return Response(serializer.data)
-    
-    elif request.method == 'PUT':
+
+    elif request.method in ('PUT', 'PATCH'):
         serializer = MedicineSerializer(medicine, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     elif request.method == 'DELETE':
         medicine.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+# ...existing code...
 
 
 @api_view(['GET'])
@@ -162,6 +164,19 @@ def order_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['PATCH', 'PUT'])
+@permission_classes([IsAuthenticated])
+def update_medicine(request, pk):
+    """
+    Partial/full update for a Medicine.
+    URL: /api/inventory/medicines/<pk>/
+    """
+    med = get_object_or_404(Medicine, pk=pk)
+    serializer = MedicineSerializer(med, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def order_detail(request, pk):
@@ -252,4 +267,3 @@ def sell_medicine(request):
         'remaining_stock': med.stock_quantity,
     }
     return Response(resp, status=status.HTTP_201_CREATED)
-# ...existing code...

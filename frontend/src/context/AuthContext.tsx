@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from 'react';
-
 export type UserType = 'patient' | 'pharmacy';
 
 export interface User {

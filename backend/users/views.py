@@ -31,20 +31,33 @@ def login_user(request):
     """Login user and return JWT token"""
     email = request.data.get('email')
     password = request.data.get('password')
-    
+
     if not email or not password:
         return Response(
             {'detail': 'Email and password are required'},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
-    # Authenticate user
-    user = authenticate(request, username=email, password=password)
-    
+
+    # Find a user by email (registration may set username != email)
+    try:
+        user_obj = User.objects.filter(email__iexact=email).first()
+    except Exception:
+        user_obj = None
+
+    # Try authenticating in a safe order:
+    # 1) If user_obj found, use its username
+    # 2) Try using the raw email (in case username == email)
+    # 3) Fallback to None -> invalid credentials
+    user = None
+    if user_obj:
+        user = authenticate(request, username=user_obj.username, password=password)
+    if user is None:
+        user = authenticate(request, username=email, password=password)
+
     if user is not None:
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
-        
+
         # Return user data and token
         return Response({
             'token': str(refresh.access_token),
@@ -57,7 +70,7 @@ def login_user(request):
                 'phone': getattr(user, 'phone', ''),
             }
         }, status=status.HTTP_200_OK)
-    
+
     return Response(
         {'detail': 'Invalid credentials'},
         status=status.HTTP_401_UNAUTHORIZED

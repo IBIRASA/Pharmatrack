@@ -68,7 +68,7 @@ class RegisterSerializer(serializers.Serializer):
         address = validated_data.get('address', '')
 
         # Create user with a username (required by AbstractUser)
-        username = email.split('@')[0]  # Use email prefix as username
+        username = email.split('@')[0]  
         user = User.objects.create_user(
             username=username,
             email=email,

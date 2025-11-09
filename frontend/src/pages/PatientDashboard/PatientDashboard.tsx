@@ -66,46 +66,7 @@ const PatientDashboardApp: React.FC = () => {
               onSearchMedicine={() => setActiveView("search")}
               onFindNearby={() => setActiveView("nearby")}
             />
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm mb-1">Total Searches</p>
-                    <p className="text-3xl font-bold text-gray-900">0</p>
-                  </div>
-                  <div className="bg-blue-100 rounded-full p-3">
-                    <Search className="w-8 h-8 text-blue-600" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm mb-1">Pharmacies Found</p>
-                    <p className="text-3xl font-bold text-gray-900">0</p>
-                  </div>
-                  <div className="bg-green-100 rounded-full p-3">
-                    <Hospital className="w-8 h-8 text-green-600" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm mb-1">Saved Locations</p>
-                    <p className="text-3xl font-bold text-gray-900">0</p>
-                  </div>
-                  <div className="bg-purple-100 rounded-full p-3">
-                    <MapPin className="w-8 h-8 text-purple-600" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-8">
+        <div className="bg-white rounded-xl shadow-sm p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">How It Works</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
