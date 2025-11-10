@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from '../../i18n';
 import { Edit, Trash2, ChevronLeft, ChevronRight, Search, Plus } from 'lucide-react';
 import SellMedicineModal from '../../components/modals/SellMedicineModal';
 import AddMedicineModal from '../../components/modals/AddMedicineModal';
@@ -21,6 +22,7 @@ interface Medicine {
 }
 
 export default function InventoryManager() {
+  const { t } = useTranslation();
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [filtered, setFiltered] = useState<Medicine[]>([]);
   const [loading, setLoading] = useState(true);
@@ -144,7 +146,7 @@ export default function InventoryManager() {
   };
 
   const handleDelete = async (m: Medicine) => {
-    if (!confirm(`Delete "${m.name}"? This action cannot be undone.`)) return;
+    if (!confirm(t('inventory.delete.confirm').replace('{name}', m.name))) return;
     const prevMeds = medicines.slice();
     setMedicines((prev) => prev.filter((x) => x.id !== m.id));
     setFiltered((prev) => prev.filter((x) => x.id !== m.id));
@@ -155,7 +157,7 @@ export default function InventoryManager() {
       console.error('Delete failed, reverting local change', err);
       setMedicines(prevMeds);
       setFiltered(prevMeds);
-      alert(`Failed to delete: ${err instanceof Error ? err.message : String(err)}`);
+      alert(t('inventory.delete.failed').replace('{msg}', err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -169,8 +171,8 @@ export default function InventoryManager() {
       {/* Header: stacks on small screens */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-semibold">Inventory</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage medicines, stock and prices</p>
+          <h1 className="text-2xl font-semibold">{t('inventory.title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('inventory.subtitle')}</p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
@@ -179,7 +181,7 @@ export default function InventoryManager() {
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search medicine, generic or category..."
+              placeholder={t('inventory.search.placeholder')}
               className="pl-10 pr-3 py-2 border rounded-md w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-green-300"
             />
           </div>
@@ -187,11 +189,11 @@ export default function InventoryManager() {
           <button
             onClick={() => setAddOpen(true)}
             className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 min-w-[140px]"
-            title="Add medicine"
+            title={t('modals.add_medicine.title')}
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Add Medicine</span>
-            <span className="sm:hidden">Add</span>
+            <span className="hidden sm:inline">{t('actions.add_medicine')}</span>
+            <span className="sm:hidden">{t('actions.add_short')}</span>
           </button>
 
           <label className="flex items-center gap-2 text-sm">
@@ -201,7 +203,7 @@ export default function InventoryManager() {
               onChange={(e) => setShowLowStock(e.target.checked)}
               className="w-4 h-4"
             />
-            <span className="text-sm text-gray-600">Low stock</span>
+            <span className="text-sm text-gray-600">{t('filter.low_stock')}</span>
           </label>
         </div>
       </div>
@@ -211,11 +213,11 @@ export default function InventoryManager() {
         <table className="min-w-full divide-y">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Medicine</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Category</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Price</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Stock</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.medicine')}</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.category')}</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.price')}</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.stock')}</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.actions')}</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y">
@@ -239,7 +241,7 @@ export default function InventoryManager() {
                       }}
                       className="px-3 py-1 bg-green-600 text-white rounded-md text-sm"
                     >
-                      Sell
+                      {t('actions.sell')}
                     </button>
 
                     <button onClick={() => handleEdit(m)} className="p-2 rounded-md hover:bg-gray-100">
@@ -276,7 +278,7 @@ export default function InventoryManager() {
                   onClick={() => { setSelectedMed(m); setSellOpen(true); }}
                   className="px-3 py-1 bg-green-600 text-white rounded-md text-sm"
                 >
-                  Sell
+                  {t('actions.sell')}
                 </button>
 
                 <div className="flex gap-2">
@@ -294,7 +296,7 @@ export default function InventoryManager() {
 
         {pageItems.length === 0 && (
           <div className="bg-white rounded-lg p-6 text-center text-gray-500">
-            {loading ? 'Loading...' : 'No medicines found.'}
+            {loading ? t('inventory.loading') : t('inventory.empty')}
           </div>
         )}
       </div>

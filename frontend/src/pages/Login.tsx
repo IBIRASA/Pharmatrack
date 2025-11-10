@@ -4,6 +4,7 @@ import { loginUser } from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import { Lock, AlertCircle, LogIn, Mail } from "lucide-react";
 import logo from "../assets/logo.png"; 
+import { useTranslation } from '../i18n';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -35,12 +36,14 @@ export default function Login() {
       navigate(dest, { replace: true });
       
     } catch (err: any) {
-      console.error('Login error:', err); // Debug log
-      setError(err?.detail || "Invalid credentials. Please try again.");
+  console.error('Login error:', err); // Debug log
+  setError(err?.detail || t('auth.login.failed'));
     } finally {
       setLoading(false);
     }
   };
+
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-linear-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4 py-12" data-aos="zoom-out" >
@@ -49,7 +52,7 @@ export default function Login() {
         <div className="text-center mb-4">
           <img
             src={logo}
-            alt="PharmaFinder logo"
+            alt={t('alt.logo') || 'PharmaFinder logo'}
             className="w-20 h-20 mx-auto rounded-full object-contain shadow-md"  data-aos="zoom-out" 
           />
         </div>
@@ -57,9 +60,9 @@ export default function Login() {
         {/* Heading */}
         <div className="text-center">
 
-          <h2 className="text-3xl font-bold text-gray-900">Login In</h2>
+          <h2 className="text-3xl font-bold text-gray-900">{t('auth.login.title')}</h2>
           <p className="mt-2 text-gray-600">
-            Sign in to your <span className="text-green-700 font-medium">PharmaFinder</span> account
+            {t('auth.login.subtitle').replace('{app}', 'PharmaFinder')}
           </p>
         </div>
 
@@ -69,7 +72,7 @@ export default function Login() {
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
               <div>
-                <p className="text-red-800 font-semibold">Error</p>
+                <p className="text-red-800 font-semibold">{t('error.title')}</p>
                 <p className="text-red-700 text-sm">{error}</p>
               </div>
             </div>
@@ -81,7 +84,7 @@ export default function Login() {
               htmlFor="email"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Email Address
+              {t('auth.login.email')}
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -93,7 +96,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 transition-all duration-300"
-                placeholder="your.email@example.com"
+                placeholder={t('auth.login.placeholder.email')}
               />
             </div>
           </div>
@@ -104,7 +107,7 @@ export default function Login() {
               htmlFor="password"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Password
+              {t('auth.login.password')}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -116,7 +119,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 transition-all duration-300"
-                placeholder="Enter your password"
+                placeholder={t('auth.login.placeholder.password')}
               />
             </div>
           </div>
@@ -130,12 +133,12 @@ export default function Login() {
             {loading ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                Signing in...
+                {t('auth.login.signing')}
               </>
             ) : (
               <>
                 <LogIn className="w-5 h-5" />
-                Sign In
+                {t('auth.login.submit')}
               </>
             )}
           </button>
@@ -144,12 +147,12 @@ export default function Login() {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
+            {t('auth.no_account')}{" "}
             <Link
               to="/register"
               className="text-green-600 font-semibold hover:text-green-700 hover:underline transition-colors"
             >
-              Sign Up
+              {t('auth.signup')}
             </Link>
           </p>
         </div>

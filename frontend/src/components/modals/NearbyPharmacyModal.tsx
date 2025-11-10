@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { MapPin, Phone, Clock, Loader, ExternalLink, RefreshCcw } from 'lucide-react';
 import { getNearbyPharmacies } from '../../utils/api';
 import type { NearbyPharmacy } from '../../utils/api';
+import { useTranslation } from '../../i18n';
 interface NearbyPharmacyModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -14,17 +15,18 @@ const NearbyPharmacyModal: React.FC<NearbyPharmacyModalProps> = ({ isOpen, onClo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<NearbyPharmacy[]>([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!isOpen) return;
     setError(null); 
     if (!navigator.geolocation) {
-      setError('Geolocation not supported in this browser.');
+      setError(t('patient.nearby.geolocation_unsupported'));
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-      (err) => setError(err.message || 'Unable to get your location.')
+      (err) => setError(err.message || t('modals.nearby.failed'))
     );
   }, [isOpen]);
 
@@ -36,7 +38,7 @@ const NearbyPharmacyModal: React.FC<NearbyPharmacyModalProps> = ({ isOpen, onClo
       const data = await getNearbyPharmacies(coords.lat, coords.lon, radius);
       setResults(data);
     } catch (e: any) {
-      setError(e?.message || 'Failed to load nearby pharmacies');
+      setError(e?.message || t('modals.nearby.failed'));
     } finally {
       setLoading(false);
     }
@@ -74,12 +76,12 @@ const NearbyPharmacyModal: React.FC<NearbyPharmacyModalProps> = ({ isOpen, onClo
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-2xl rounded-xl shadow-lg overflow-hidden">
         <div className="px-6 py-4 border-b flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Nearby Pharmacies</h3>
-          <button onClick={onClose} className="text-gray-600 hover:text-gray-800">Close</button>
+          <h3 className="text-lg font-semibold">{t('modals.nearby.title')}</h3>
+          <button onClick={onClose} className="text-gray-600 hover:text-gray-800">{t('modals.nearby.close')}</button>
         </div>
 
         <div className="px-6 py-4 flex items-center gap-3">
-          <label className="text-sm text-gray-600">Radius:</label>
+          <label className="text-sm text-gray-600">{t('modals.nearby.radius_label')}</label>
           <select
             value={radius}
             onChange={(e) => setRadius(Number(e.target.value))}
@@ -94,7 +96,7 @@ const NearbyPharmacyModal: React.FC<NearbyPharmacyModalProps> = ({ isOpen, onClo
             onClick={loadPharmacies}
             className="ml-auto inline-flex items-center gap-2 px-3 py-2 rounded-lg border hover:bg-gray-50 text-sm"
           >
-            <RefreshCcw className="w-4 h-4" /> Refresh
+            <RefreshCcw className="w-4 h-4" /> {t('modals.nearby.refresh')}
           </button>
         </div>
 
@@ -102,7 +104,7 @@ const NearbyPharmacyModal: React.FC<NearbyPharmacyModalProps> = ({ isOpen, onClo
           {!coords && !error && (
             <div className="py-10 text-center text-gray-500">
               <Loader className="w-6 h-6 animate-spin mx-auto mb-3 text-green-600" />
-              Getting your location...
+              {t('modals.nearby.getting_location')}
             </div>
           )}
           {error && (
@@ -113,12 +115,12 @@ const NearbyPharmacyModal: React.FC<NearbyPharmacyModalProps> = ({ isOpen, onClo
           {coords && loading && (
             <div className="py-10 text-center text-gray-500">
               <Loader className="w-6 h-6 animate-spin mx-auto mb-3 text-green-600" />
-              Searching pharmacies within {(radius / 1000).toFixed(1)} km...
+              {t('modals.nearby.searching').replace('{km}', (radius / 1000).toFixed(1))}
             </div>
           )}
           {coords && !loading && sorted.length === 0 && !error && (
             <div className="py-10 text-center text-gray-500">
-              No pharmacies found nearby.
+              {t('modals.nearby.none_found')}
             </div>
           )}
           {coords && !loading && sorted.length > 0 && (
@@ -156,14 +158,14 @@ const NearbyPharmacyModal: React.FC<NearbyPharmacyModalProps> = ({ isOpen, onClo
                         rel="noreferrer"
                         className="inline-flex items-center gap-2 px-3 py-2 border rounded-lg text-sm hover:bg-gray-50"
                       >
-                        <ExternalLink className="w-4 h-4" /> Open in Maps
+                        <ExternalLink className="w-4 h-4" /> {t('modals.nearby.open_maps')}
                       </a>
                       {telUrl && (
                         <a
                           href={telUrl}
                           className="inline-flex items-center gap-2 px-3 py-2 border rounded-lg text-sm hover:bg-gray-50"
                         >
-                          <Phone className="w-4 h-4" /> Call
+                          <Phone className="w-4 h-4" /> {t('modals.nearby.call')}
                         </a>
                       )}
                     </div>

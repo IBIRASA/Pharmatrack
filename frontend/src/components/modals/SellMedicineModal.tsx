@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2, ShoppingCart } from 'lucide-react';
 import { sellMedicine } from '../../utils/api';
+import { useTranslation } from '../../i18n';
 
 interface Medicine {
   id: number;
@@ -36,6 +37,7 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
   const [prescription, setPrescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { t } = useTranslation();
 
   // Reset form when modal opens/closes or medicine changes
   useEffect(() => {
@@ -84,7 +86,8 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
     } catch (error: any) {
       console.error('Error selling medicine:', error);
       const msg = error?.detail || error?.message || JSON.stringify(error);
-      alert(`Sale failed: ${msg}`);
+      // show translated failure message (fall back to English)
+      alert(`${t('sales.failed') || 'Sale failed'}: ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -102,7 +105,7 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
         <div className="px-6 py-4 border-b flex items-center justify-between sticky top-0 bg-white">
           <div className="flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-green-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Sell Medicine</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('modals.sell_medicine.title')}</h3>
           </div>
           <button
             onClick={onClose}
@@ -118,14 +121,14 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
           <div className="bg-gray-50 rounded-lg p-4 border">
             <h4 className="font-semibold text-gray-900 text-lg">{medicine.name}</h4>
             <div className="mt-2 space-y-1 text-sm text-gray-600">
-              <p><span className="font-medium">Dosage:</span> {medicine.dosage}</p>
-              <p><span className="font-medium">Manufacturer:</span> {medicine.manufacturer}</p>
-              <p><span className="font-medium">Category:</span> {medicine.category}</p>
+              <p><span className="font-medium">{t('modals.sell_medicine.dosage_label') ?? 'Dosage:'}</span> {medicine.dosage}</p>
+              <p><span className="font-medium">{t('modals.sell_medicine.manufacturer_label') ?? 'Manufacturer:'}</span> {medicine.manufacturer}</p>
+              <p><span className="font-medium">{t('modals.sell_medicine.category_label') ?? 'Category:'}</span> {medicine.category}</p>
               <p className={`font-medium ${medicine.is_low_stock ? 'text-orange-600' : 'text-gray-700'}`}>
-                Available Stock: {medicine.stock_quantity} units
+                {t('modals.sell_medicine.available_stock') ?? 'Available Stock:'} {medicine.stock_quantity} {t('modals.sell_medicine.units') ?? 'units'}
               </p>
               <p className="font-medium text-green-700">
-                Price: ${parseFloat(medicine.unit_price).toFixed(2)} per unit
+                {t('modals.sell_medicine.price_label') ?? 'Price:'} ${parseFloat(medicine.unit_price).toFixed(2)} {t('modals.sell_medicine.per_unit') ?? 'per unit'}
               </p>
             </div>
           </div>
@@ -140,7 +143,7 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
           {/* Quantity */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Quantity to Sell <span className="text-red-500">*</span>
+              {t('modals.sell_medicine.quantity_label')} <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -153,7 +156,7 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
               disabled={loading}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Maximum: {maxQuantity} units available • {maxQuantity - quantity} remaining after sale
+              {t('modals.sell_medicine.max_text') ?? `Maximum: ${maxQuantity} units available • ${maxQuantity - quantity} remaining after sale`}
             </p>
           </div>
 
@@ -161,14 +164,14 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Customer Name <span className="text-red-500">*</span>
+                {t('modals.sell_medicine.customer_name')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                placeholder="Enter customer full name"
+                placeholder={t('modals.sell_medicine.placeholder.customer_name') ?? 'Enter customer full name'}
                 required
                 disabled={loading}
               />
@@ -176,28 +179,28 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Customer Phone
+                {t('modals.sell_medicine.customer_phone')}
               </label>
               <input
                 type="tel"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                placeholder="Enter phone number (optional)"
+                placeholder={t('modals.sell_medicine.placeholder.customer_phone') ?? 'Enter phone number (optional)'}
                 disabled={loading}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Prescription Details
+                {t('modals.sell_medicine.prescription')}
               </label>
               <textarea
                 rows={3}
                 value={prescription}
                 onChange={(e) => setPrescription(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                placeholder="Enter prescription details (optional)"
+                placeholder={t('modals.sell_medicine.placeholder.prescription') ?? 'Enter prescription details (optional)'}
                 disabled={loading}
               />
             </div>
@@ -206,13 +209,13 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
           {/* Total Price Display */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex justify-between items-center">
-              <span className="font-semibold text-gray-900">Total Amount:</span>
+              <span className="font-semibold text-gray-900">{t('modals.sell_medicine.total_label')}</span>
               <span className="text-xl font-bold text-green-700">
                 ${totalPrice.toFixed(2)}
               </span>
             </div>
             <p className="text-xs text-green-600 mt-1">
-              {quantity} unit(s) × ${parseFloat(medicine.unit_price).toFixed(2)}
+              {t('modals.sell_medicine.total_calc').replace('{qty}', String(quantity)).replace('{price}', parseFloat(medicine.unit_price).toFixed(2))}
             </p>
           </div>
 
@@ -224,7 +227,7 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
               disabled={loading}
               className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
-              Cancel
+              {t('actions.cancel')}
             </button>
             <button
               type="submit"
@@ -234,12 +237,12 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Processing...
+                  {t('modals.sell_medicine.processing')}
                 </>
               ) : (
                 <>
                   <ShoppingCart className="w-4 h-4" />
-                  Complete Sale
+                  {t('modals.sell_medicine.complete')}
                 </>
               )}
             </button>

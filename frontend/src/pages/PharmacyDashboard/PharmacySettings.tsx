@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { User, Lock, Save, Bell, Building } from "lucide-react";
+import { User, Lock, Save, Bell, Sun, Moon } from "lucide-react";
+import { useTranslation } from "../../i18n";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function PharmacySettings() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [profileData, setProfileData] = useState({
     username: user?.name || "",
     email: user?.email || "",
@@ -22,6 +25,7 @@ export default function PharmacySettings() {
     lowStockAlerts: true,
     orderNotifications: true,
   });
+  const { theme, toggle } = useTheme();
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,15 +49,15 @@ export default function PharmacySettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-        <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
+        <h2 className="text-2xl font-bold text-gray-900">{t('nav.settings')}</h2>
+        <p className="text-gray-600 mt-1">{t('patient.settings.subtitle')}</p>
       </div>
 
       {/* Profile Settings */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b flex items-center gap-3">
           <User className="w-5 h-5 text-gray-600" />
-          <h3 className="text-lg font-semibold">Profile Information</h3>
+          <h3 className="text-lg font-semibold">{t('patient.settings.profile_info')}</h3>
         </div>
         <form onSubmit={handleProfileSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -99,7 +103,7 @@ export default function PharmacySettings() {
             className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
           >
             <Save className="w-4 h-4" />
-            Save Changes
+            {t('patient.settings.save_changes')}
           </button>
         </form>
       </div>
@@ -108,7 +112,7 @@ export default function PharmacySettings() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b flex items-center gap-3">
           <Lock className="w-5 h-5 text-gray-600" />
-          <h3 className="text-lg font-semibold">Change Password</h3>
+          <h3 className="text-lg font-semibold">{t('patient.settings.change_password')}</h3>
         </div>
         <form onSubmit={handlePasswordSubmit} className="p-6 space-y-4">
           <div>
@@ -145,7 +149,7 @@ export default function PharmacySettings() {
             className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
           >
             <Save className="w-4 h-4" />
-            Update Password
+            {t('patient.settings.save_changes')}
           </button>
         </form>
       </div>
@@ -154,7 +158,7 @@ export default function PharmacySettings() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b flex items-center gap-3">
           <Bell className="w-5 h-5 text-gray-600" />
-          <h3 className="text-lg font-semibold">Notification Preferences</h3>
+          <h3 className="text-lg font-semibold">{t('settings.notifications.title') || 'Notification Preferences'}</h3>
         </div>
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-between">
@@ -203,6 +207,42 @@ export default function PharmacySettings() {
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
             </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Appearance / Theme */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-6 border-b flex items-center gap-3">
+          <User className="w-5 h-5 text-gray-600" />
+          <h3 className="text-lg font-semibold">{t('settings.appearance.title') || 'Appearance'}</h3>
+        </div>
+        <div className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-900">{t('settings.appearance.label') || 'Theme'}</p>
+              <p className="text-sm text-gray-600">{t('settings.appearance.description') || 'Switch between light and dark mode'}</p>
+            </div>
+            <div>
+              <button
+                onClick={toggle}
+                className="inline-flex items-center gap-3 px-4 py-2 rounded-full border bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700"
+                aria-pressed={theme === 'dark'}
+                title={theme === 'dark' ? (t('settings.appearance.dark') || 'Dark') : (t('settings.appearance.light') || 'Light')}
+              >
+                {theme === 'dark' ? (
+                  <>
+                    <Moon className="w-5 h-5 text-yellow-300" />
+                    <span className="text-sm">{t('settings.appearance.dark') || 'Dark'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Sun className="w-5 h-5 text-yellow-500" />
+                    <span className="text-sm">{t('settings.appearance.light') || 'Light'}</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { Search, MapPin } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 
 interface PatientActionCardsProps {
   onSearchMedicine: () => void;
@@ -6,6 +7,7 @@ interface PatientActionCardsProps {
 }
 
 export default function PatientActionCards({ onSearchMedicine, onFindNearby }: PatientActionCardsProps) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Search Medicine Card */}
@@ -18,12 +20,10 @@ export default function PatientActionCards({ onSearchMedicine, onFindNearby }: P
             <Search className="w-8 h-8 text-green-600 group-hover:text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Search Medicines</h3>
-            <p className="text-gray-600 mb-4">
-              Find medicines and see which pharmacies have them in stock
-            </p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('patient.search.card')}</h3>
+            <p className="text-gray-600 mb-4">{t('search.desc')}</p>
             <div className="flex items-center gap-2 text-green-600 font-semibold group-hover:gap-3 transition-all">
-              <span>Start Searching</span>
+              <span>{t('search.cta')}</span>
               <span>→</span>
             </div>
           </div>
@@ -40,12 +40,10 @@ export default function PatientActionCards({ onSearchMedicine, onFindNearby }: P
             <MapPin className="w-8 h-8 text-blue-600 group-hover:text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Nearby Pharmacies</h3>
-            <p className="text-gray-600 mb-4">
-              Discover pharmacies near your location with directions
-            </p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('patient.nearby.card')}</h3>
+            <p className="text-gray-600 mb-4">{t('feature.2.desc')}</p>
             <div className="flex items-center gap-2 text-blue-600 font-semibold group-hover:gap-3 transition-all">
-              <span>Find Nearby</span>
+              <span>{t('search.cta')}</span>
               <span>→</span>
             </div>
           </div>

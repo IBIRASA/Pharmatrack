@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2, Plus } from 'lucide-react';
 import { createMedicine } from '../../utils/api';
+import { useTranslation } from '../../i18n';
 
 interface AddMedicineModalProps {
   open: boolean;
@@ -22,6 +23,7 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (open) {
@@ -44,10 +46,10 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
 
   const validate = () => {
     const fe: Record<string, string> = {};
-    if (!name.trim()) fe.name = 'Medicine name is required';
-    if (!unitPrice || Number(unitPrice) < 0) fe.unitPrice = 'Enter a valid price (>= 0)';
-    if (stockQuantity < 0) fe.stockQuantity = 'Stock cannot be negative';
-    if (minimumStock < 0) fe.minimumStock = 'Minimum stock cannot be negative';
+    if (!name.trim()) fe.name = t('validation.medicine_name_required');
+    if (!unitPrice || Number(unitPrice) < 0) fe.unitPrice = t('validation.enter_valid_price');
+    if (stockQuantity < 0) fe.stockQuantity = t('validation.stock_cannot_negative');
+    if (minimumStock < 0) fe.minimumStock = t('validation.minimum_stock_negative');
     setFieldErrors(fe);
     return Object.keys(fe).length === 0;
   };
@@ -89,9 +91,9 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
         <div className="px-6 py-4 border-b flex items-center justify-between sticky top-0 bg-white">
           <div className="flex items-center gap-3">
             <Plus className="w-5 h-5 text-green-600" />
-            <h3 id="add-medicine-title" className="text-lg font-semibold">Add Medicine</h3>
+            <h3 id="add-medicine-title" className="text-lg font-semibold">{t('modals.add_medicine.title')}</h3>
           </div>
-          <button onClick={onClose} disabled={loading} aria-label="Close add medicine" className="text-gray-600 hover:text-gray-800">
+          <button onClick={onClose} disabled={loading} aria-label={t('modals.add_medicine.close')} className="text-gray-600 hover:text-gray-800">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -100,7 +102,7 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
           {/* global error */}
           {error && <div className="text-sm text-red-700 bg-red-50 p-2 rounded">{error}</div>}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Medicine name <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700">{t('modals.add_medicine.name_label') ?? 'Medicine name'} <span className="text-red-500">*</span></label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -108,29 +110,29 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
               className={`mt-1 block w-full px-3 py-2 border rounded ${fieldErrors.name ? 'border-red-400' : 'border-gray-300'}`}
               required
             />
-            <p className="text-xs text-gray-500 mt-1">Provide the full product name used on labels.</p>
+            <p className="text-xs text-gray-500 mt-1">{t('modals.add_medicine.name_help') ?? 'Provide the full product name used on labels.'}</p>
             {fieldErrors.name && <p className="text-xs text-red-600 mt-1">{fieldErrors.name}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Generic name</label>
+              <label className="block text-sm font-medium text-gray-700">{t('modals.add_medicine.generic_label')}</label>
               <input value={genericName} onChange={(e) => setGenericName(e.target.value)} placeholder="e.g., Acetaminophen" className="mt-1 block w-full px-3 py-2 border rounded border-gray-300" />
-              <p className="text-xs text-gray-500 mt-1">Optional — helps search by generic ingredient.</p>
+              <p className="text-xs text-gray-500 mt-1">{t('modals.add_medicine.generic_help')}</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Manufacturer</label>
+              <label className="block text-sm font-medium text-gray-700">{t('modals.add_medicine.manufacturer_label')}</label>
               <input value={manufacturer} onChange={(e) => setManufacturer(e.target.value)} placeholder="e.g., Pharma Ltd." className="mt-1 block w-full px-3 py-2 border rounded border-gray-300" />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <label className="block text-sm font-medium text-gray-700">{t('modals.add_medicine.category_label')}</label>
               <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g., Analgesic" className="mt-1 block w-full px-3 py-2 border rounded border-gray-300" />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Dosage / Strength</label>
+              <label className="block text-sm font-medium text-gray-700">{t('modals.add_medicine.dosage_label')}</label>
               <input value={dosage} onChange={(e) => setDosage(e.target.value)} placeholder="e.g., 500 mg" className="mt-1 block w-full px-3 py-2 border rounded border-gray-300" />
             </div>
           </div>
@@ -138,7 +140,7 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
           {/* Pricing & stock */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Unit price (UGX / USD)</label>
+              <label className="block text-sm font-medium text-gray-700">{t('modals.add_medicine.unit_price_label')}</label>
               <input
                 value={unitPrice}
                 onChange={(e) => setUnitPrice(e.target.value)}
@@ -147,11 +149,11 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
                 inputMode="decimal"
               />
               {fieldErrors.unitPrice && <p className="text-xs text-red-600 mt-1">{fieldErrors.unitPrice}</p>}
-              <p className="text-xs text-gray-500 mt-1">Enter numeric price per unit (use dot for decimals).</p>
+              <p className="text-xs text-gray-500 mt-1">{t('modals.add_medicine.price_help') ?? 'Enter numeric price per unit (use dot for decimals).'}</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Stock quantity</label>
+              <label className="block text-sm font-medium text-gray-700">{t('modals.add_medicine.stock_quantity_label')}</label>
               <input
                 type="number"
                 value={stockQuantity}
@@ -160,11 +162,11 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
                 className={`mt-1 block w-full px-3 py-2 border rounded ${fieldErrors.stockQuantity ? 'border-red-400' : 'border-gray-300'}`}
               />
               {fieldErrors.stockQuantity && <p className="text-xs text-red-600 mt-1">{fieldErrors.stockQuantity}</p>}
-              <p className="text-xs text-gray-500 mt-1">Current available units in stock.</p>
+              <p className="text-xs text-gray-500 mt-1">{t('modals.add_medicine.stock_help') ?? 'Current available units in stock.'}</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Minimum stock (reorder level)</label>
+              <label className="block text-sm font-medium text-gray-700">{t('modals.add_medicine.minimum_stock_label')}</label>
               <input
                 type="number"
                 value={minimumStock}
@@ -173,27 +175,27 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
                 className={`mt-1 block w-full px-3 py-2 border rounded ${fieldErrors.minimumStock ? 'border-red-400' : 'border-gray-300'}`}
               />
               {fieldErrors.minimumStock && <p className="text-xs text-red-600 mt-1">{fieldErrors.minimumStock}</p>}
-              <p className="text-xs text-gray-500 mt-1">Notify when stock this value.</p>
+              <p className="text-xs text-gray-500 mt-1">{t('modals.add_medicine.minimum_help') ?? 'Notify when stock this value.'}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Expiry date (optional)</label>
+              <label className="block text-sm font-medium text-gray-700">{t('modals.add_medicine.expiry_label')}</label>
               <input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="mt-1 block w-full px-3 py-2 border rounded border-gray-300" />
-              <p className="text-xs text-gray-500 mt-1">Leave blank for non-expiring items.</p>
+              <p className="text-xs text-gray-500 mt-1">{t('modals.add_medicine.expiry_help') ?? 'Leave blank for non-expiring items.'}</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Short description (optional)</label>
+              <label className="block text-sm font-medium text-gray-700">{t('modals.add_medicine.description_label')}</label>
               <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g., Tablet, blister pack of 10" className="mt-1 block w-full px-3 py-2 border rounded border-gray-300" />
             </div>
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4">
-            <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 border rounded">Cancel</button>
+            <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 border rounded">{t('actions.cancel')}</button>
             <button type="submit" disabled={loading} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded">
-              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <>Add Medicine</>}
+              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('modals.add_medicine.saving')}</> : <>{t('modals.add_medicine.save')}</>}
             </button>
           </div>
         </form>

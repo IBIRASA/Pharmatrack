@@ -1,38 +1,17 @@
 
 import { Search, MapPin, Package, Bell, ShieldCheck, Clock } from 'lucide-react';
+import { useTranslation } from '../i18n';
+
 function Features() {
   try {
+    const { t } = useTranslation();
     const features = [
-      {
-        icon: <Search className="w-6 h-6 text-[--primary-color]" />,
-        title: 'Medicine Search',
-        description: 'Search for any medicine and find pharmacies that have it in stock instantly'
-      },
-      {
-        icon: <MapPin className="w-6 h-6 text-[--primary-color]" />,
-        title: 'Locate Nearby Pharmacies',
-        description: 'Use your current location to find the nearest pharmacies on an interactive map'
-      },
-      {
-        icon: <Package className="w-6 h-6 text-[--primary-color]" />,
-        title: 'Inventory Management',
-        description: 'Pharmacies can manage their inventory with automated low-stock notifications'
-      },
-      {
-        icon: <Bell className="w-6 h-6 text-[--primary-color]" />,
-        title: 'Smart Notifications',
-        description: 'Get alerts when medicine stock is running low or when new stock arrives'
-      },
-      {
-        icon: <ShieldCheck className="w-6 h-6 text-[--primary-color]" />,
-        title: 'Secure & Private',
-        description: 'Your data is protected with enterprise-grade security and encryption'
-      },
-      {
-        icon: <Clock className="w-6 h-6 text-[--primary-color]" />,
-        title: 'Real-time Updates',
-        description: 'Access up-to-date information on medicine availability and pharmacy hours'
-      }
+      { icon: <Search className="w-6 h-6 text-[--primary-color]" />, key: 1 },
+      { icon: <MapPin className="w-6 h-6 text-[--primary-color]" />, key: 2 },
+      { icon: <Package className="w-6 h-6 text-[--primary-color]" />, key: 3 },
+      { icon: <Bell className="w-6 h-6 text-[--primary-color]" />, key: 4 },
+      { icon: <ShieldCheck className="w-6 h-6 text-[--primary-color]" />, key: 5 },
+      { icon: <Clock className="w-6 h-6 text-[--primary-color]" />, key: 6 },
     ];
 
     return (
@@ -40,10 +19,10 @@ function Features() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-(--text-dark) mb-4">
-              Everything You Need
+              {t('features.title')}
             </h2>
             <p className="text-xl text-(--text-light)">
-              Powerful features for patients and pharmacies
+              {t('features.subtitle')}
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" data-aos="zoom-in">
@@ -53,10 +32,10 @@ function Features() {
                 {feature.icon}
               </div>
                 <h3 className="text-xl font-semibold text-(--text-dark) mb-2">
-                  {feature.title}
+                  {t(`feature.${feature.key}.title`)}
                 </h3>
                 <p className="text-(--text-light)">
-                  {feature.description}
+                  {t(`feature.${feature.key}.desc`)}
                 </p>
               </div>
             ))}

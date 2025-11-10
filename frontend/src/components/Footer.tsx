@@ -1,8 +1,12 @@
 import logo from '../assets/logo.png';
-import { Phone, Mail } from 'lucide-react';
+import { Phone, Mail, Sun, Moon } from 'lucide-react';
+import { useTranslation } from '../i18n';
+import { useTheme } from '../context/ThemeContext';
 
 function Footer() {
   try {
+    const { t } = useTranslation();
+
     return (
   <footer id="footer" className="bg-(--text-dark) text-white py-12" data-name="footer" data-file="components/Footer.js" data-aos="zoom-in">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,24 +24,24 @@ function Footer() {
                 <span className="text-2xl font-bold">PharmFinder</span>
               </div>
               <p className="text-gray-400">
-                Making healthcare accessible by connecting patients with pharmacies.
+                {t('footer.tagline')}
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
+              <h4 className="font-semibold mb-4">{t('footer.about')}</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#about" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
-                <li><a href="#contact" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="#about" className="hover:text-white transition-colors">{t('footer.about')}</a></li>
+                <li><a href="#how-it-works" className="hover:text-white transition-colors">{t('footer.how')}</a></li>
+                <li><a href="#contact" className="hover:text-white transition-colors">{t('footer.contact')}</a></li>
               </ul>
             </div>
 
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t('footer.privacy')}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t('footer.terms')}</a></li>
               </ul>
             </div>
 
@@ -60,14 +64,38 @@ function Footer() {
 
           </div>
 
-          <div className="border-t border-gray-700 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 PharmFinder. All rights reserved.</p>
+          <div className="border-t border-gray-700 pt-8 text-center text-gray-400 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p>{t('footer.copy')}</p>
+            <div className="flex items-center justify-center gap-3">
+              {/* Theme toggle in footer for quick access */}
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </footer>
     );
   } catch (error) {
     console.error('Footer component error:', error);
+    return null;
+  }
+}
+
+function ThemeToggle() {
+  try {
+    const { t } = useTranslation();
+    const { theme, toggle } = useTheme();
+    return (
+      <button
+        onClick={toggle}
+        className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-gray-800 text-white hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-900"
+        title={theme === 'dark' ? (t('settings.appearance.dark') || 'Dark') : (t('settings.appearance.light') || 'Light')}
+        aria-pressed={theme === 'dark'}
+      >
+        {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />} 
+        <span className="text-sm">{theme === 'dark' ? (t('settings.appearance.dark') || 'Dark') : (t('settings.appearance.light') || 'Light')}</span>
+      </button>
+    );
+  } catch (err) {
     return null;
   }
 }

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from '../../i18n';
 import {
   ShoppingCart,
   Plus,
@@ -7,7 +8,6 @@ import {
   Search as SearchIcon,
   Loader as LoaderIcon,
   CheckCircle,
-  X,
 } from 'lucide-react';
 import { getMedicines, createOrder, updateMedicine } from '../../utils/api';
 
@@ -26,6 +26,7 @@ interface CartItem extends Medicine {
 }
 
 export default function Sales() {
+  const { t } = useTranslation();
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -69,7 +70,7 @@ export default function Sales() {
 
     if (newQty < 1) return;
     if (newQty > medicine.stock_quantity) {
-      alert(`Only ${medicine.stock_quantity} units available`);
+      alert(t('sales.only_x_available').replace('{count}', String(medicine.stock_quantity)));
       return;
     }
 
@@ -83,7 +84,7 @@ export default function Sales() {
     if (existing) {
       const newQty = existing.quantity + qtyToAdd;
       if (newQty > medicine.stock_quantity) {
-        alert('Not enough stock available');
+        alert(t('sales.not_enough_stock'));
         return;
       }
       setCart(
@@ -142,11 +143,11 @@ export default function Sales() {
 
   const handleCompleteSale = async () => {
     if (cart.length === 0) {
-      alert('Cart is empty');
+      alert(t('sales.cart.empty'));
       return;
     }
     if (!customerName.trim()) {
-      alert('Please enter customer name');
+      alert(t('sales.enter_customer_name'));
       return;
     }
 
@@ -177,7 +178,7 @@ export default function Sales() {
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
       console.error('Sale error:', error);
-      alert('Failed to complete sale');
+      alert(t('sales.failed'));
     } finally {
       setLoading(false);
     }
@@ -186,8 +187,8 @@ export default function Sales() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Make a Sale</h2>
-        <p className="text-gray-600 mt-1">Process customer purchases</p>
+        <h2 className="text-2xl font-bold text-gray-900">{t('sales.title')}</h2>
+        <p className="text-gray-600 mt-1">{t('sales.subtitle')}</p>
       </div>
 
       {showSuccess && (
@@ -205,7 +206,7 @@ export default function Sales() {
               <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search medicines..."
+                placeholder={t('sales.search.placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -214,13 +215,13 @@ export default function Sales() {
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="p-4 border-b">
-              <h3 className="font-semibold">Available Medicines</h3>
+              <div className="p-4 border-b">
+              <h3 className="font-semibold">{t('sales.available.title')}</h3>
             </div>
             <div className="divide-y max-h-[500px] overflow-y-auto">
               {filteredMedicines.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  <p>No medicines found</p>
+                  <p>{t('sales.no_medicines')}</p>
                 </div>
               ) : (
                 filteredMedicines.map((medicine) => (
@@ -277,12 +278,12 @@ export default function Sales() {
                         className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 font-medium"
                       >
                         <ShoppingCart className="w-4 h-4" />
-                        Add to Cart
+                        {t('sales.add_to_cart')}
                       </button>
                     </div>
 
                     <p className="text-xs text-gray-600 mt-2">
-                      Subtotal: ${((quantities[medicine.id] || 1) * parseFloat(medicine.unit_price)).toFixed(2)}
+                      {t('sales.subtotal')} ${((quantities[medicine.id] || 1) * parseFloat(medicine.unit_price)).toFixed(2)}
                     </p>
                   </div>
                 ))
@@ -300,9 +301,9 @@ export default function Sales() {
             </div>
             <div className="divide-y max-h-[300px] overflow-y-auto">
               {cart.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
+                  <div className="p-8 text-center text-gray-500">
                   <ShoppingCart className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                  <p>Cart is empty</p>
+                  <p>{t('sales.cart.empty')}</p>
                 </div>
               ) : (
                 cart.map((item) => (
@@ -349,19 +350,19 @@ export default function Sales() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Customer Name *
+                {t('sales.customer_name')} *
               </label>
               <input
                 type="text"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Enter customer name"
+                placeholder={t('sales.customer_name')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone (optional)
+                {t('sales.customer_phone')}
               </label>
               <input
                 type="tel"
@@ -374,7 +375,7 @@ export default function Sales() {
 
             <div className="border-t pt-4">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-lg font-semibold text-gray-900">Total</span>
+                <span className="text-lg font-semibold text-gray-900">{t('sales.total')}</span>
                 <span className="text-2xl font-bold text-green-600">
                   ${totalAmount.toFixed(2)}
                 </span>
@@ -387,12 +388,12 @@ export default function Sales() {
                 {loading ? (
                   <>
                     <LoaderIcon className="w-5 h-5 animate-spin" />
-                    Processing...
+                    {t('sales.processing')}
                   </>
                 ) : (
                   <>
                     <CheckCircle className="w-5 h-5" />
-                    Complete Sale
+                    {t('sales.complete')}
                   </>
                 )}
               </button>

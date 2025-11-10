@@ -13,6 +13,7 @@ import {
   BarChart3,
   Calendar
 } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 
 interface DashboardStats {
   total_revenue: string;
@@ -26,6 +27,7 @@ interface DashboardStats {
 }
 
 export default function Overview() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -42,8 +44,7 @@ export default function Overview() {
       setError('');
       
       console.log('Loading dashboard data...');
-      
-      // Load all data in parallel
+    
       const [statsData, salesData, customersData] = await Promise.all([
         getDashboardStats(),
         getMockSalesHistory(1, 5),
@@ -86,7 +87,7 @@ export default function Overview() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Loader className="w-12 h-12 animate-spin text-green-600 mb-4" />
-        <p className="text-gray-600 font-medium">Loading dashboard...</p>
+        <p className="text-gray-600 font-medium">{t('dashboard.loading')}</p>
       </div>
     );
   }
@@ -95,13 +96,13 @@ export default function Overview() {
     return (
       <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
         <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-        <h3 className="text-xl font-bold text-red-900 mb-2">Error Loading Dashboard</h3>
-        <p className="text-red-700 mb-4">{error}</p>
+  <h3 className="text-xl font-bold text-red-900 mb-2">{t('dashboard.error.title')}</h3>
+  <p className="text-red-700 mb-4">{error}</p>
         <button
           onClick={loadDashboard}
           className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 font-medium"
         >
-          Try Again
+          {t('actions.try_again')}
         </button>
       </div>
     );
@@ -111,8 +112,8 @@ export default function Overview() {
     return (
       <div className="text-center py-20">
         <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-xl font-bold text-gray-900 mb-2">No Data Available</h3>
-        <p className="text-gray-600 mb-4">Start by making your first sale to see dashboard data</p>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">{t('dashboard.no_data.title')}</h3>
+        <p className="text-gray-600 mb-4">{t('dashboard.no_data.desc')}</p>
       </div>
     );
   }
@@ -121,8 +122,8 @@ export default function Overview() {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-linear-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-lg">
-        <h2 className="text-3xl font-bold mb-2">Dashboard Overview</h2>
-        <p className="text-green-50">Welcome back! Here's your pharmacy performance at a glance.</p>
+        <h2 className="text-3xl font-bold mb-2">{t('dashboard.overview.title')}</h2>
+        <p className="text-green-50">{t('dashboard.overview.subtitle')}</p>
       </div>
 
       {/* Stats Grid */}
@@ -133,12 +134,12 @@ export default function Overview() {
             <div className="bg-green-100 p-3 rounded-lg">
               <DollarSign className="w-6 h-6 text-green-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">Total</span>
+            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.total_label')}</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">
             ${stats.total_revenue}
           </h3>
-          <p className="text-sm text-gray-600">Total Revenue</p>
+          <p className="text-sm text-gray-600">{t('dashboard.card.total_revenue')}</p>
         </div>
 
         {/* Total Sales */}
@@ -147,10 +148,10 @@ export default function Overview() {
             <div className="bg-blue-100 p-3 rounded-lg">
               <ShoppingCart className="w-6 h-6 text-blue-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">All Time</span>
+            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.all_time')}</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">{stats.total_sales}</h3>
-          <p className="text-sm text-gray-600">Total Sales</p>
+          <p className="text-sm text-gray-600">{t('dashboard.card.total_sales')}</p>
         </div>
 
         {/* Today's Sales */}
@@ -159,10 +160,10 @@ export default function Overview() {
             <div className="bg-purple-100 p-3 rounded-lg">
               <Calendar className="w-6 h-6 text-purple-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">Today</span>
+            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.today')}</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">{stats.today_sales}</h3>
-          <p className="text-sm text-gray-600">Today's Sales</p>
+          <p className="text-sm text-gray-600">{t('dashboard.card.today_sales')}</p>
         </div>
 
         {/* Total Customers */}
@@ -171,10 +172,10 @@ export default function Overview() {
             <div className="bg-indigo-100 p-3 rounded-lg">
               <Users className="w-6 h-6 text-indigo-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">Unique</span>
+            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.unique')}</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">{stats.total_customers}</h3>
-          <p className="text-sm text-gray-600">Total Customers</p>
+          <p className="text-sm text-gray-600">{t('dashboard.card.total_customers')}</p>
         </div>
 
         {/* Monthly Revenue */}
@@ -183,12 +184,12 @@ export default function Overview() {
             <div className="bg-orange-100 p-3 rounded-lg">
               <BarChart3 className="w-6 h-6 text-orange-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">This Month</span>
+            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.this_month')}</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">
             ${stats.monthly_revenue}
           </h3>
-          <p className="text-sm text-gray-600">Monthly Revenue</p>
+          <p className="text-sm text-gray-600">{t('dashboard.card.monthly_revenue')}</p>
         </div>
 
         {/* Average Order Value */}
@@ -197,12 +198,12 @@ export default function Overview() {
             <div className="bg-cyan-100 p-3 rounded-lg">
               <TrendingUp className="w-6 h-6 text-cyan-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">Average</span>
+            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.average')}</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">
             ${stats.average_order_value}
           </h3>
-          <p className="text-sm text-gray-600">Avg. Order Value</p>
+          <p className="text-sm text-gray-600">{t('dashboard.card.avg_order_value')}</p>
         </div>
 
         {/* Monthly Sales */}
@@ -211,10 +212,10 @@ export default function Overview() {
             <div className="bg-pink-100 p-3 rounded-lg">
               <Package className="w-6 h-6 text-pink-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">This Month</span>
+            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.this_month')}</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">{stats.monthly_sales}</h3>
-          <p className="text-sm text-gray-600">Monthly Sales</p>
+          <p className="text-sm text-gray-600">{t('dashboard.card.monthly_sales')}</p>
         </div>
 
         {/* Low Stock Alert */}
@@ -223,10 +224,10 @@ export default function Overview() {
             <div className="bg-red-100 p-3 rounded-lg">
               <AlertTriangle className="w-6 h-6 text-red-600" />
             </div>
-            <span className="text-sm font-medium text-red-600">Attention</span>
+            <span className="text-sm font-medium text-red-600">{t('dashboard.card.low_stock_attention')}</span>
           </div>
           <h3 className="text-3xl font-bold text-red-900 mb-1"> {loading ? '...' : lowStockCount}</h3>
-          <p className="text-sm text-gray-600">Low Stock Items</p>
+          <p className="text-sm text-gray-600">{t('dashboard.card.low_stock')}</p>
         </div>
       </div>
 
@@ -236,13 +237,13 @@ export default function Overview() {
         <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
           <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <ShoppingCart className="w-6 h-6 text-green-600" />
-            Recent Sales
+            {t('recent.sales.title')}
           </h3>
           <div className="space-y-4">
             {recentSales.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500">
                 <ShoppingCart className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                <p>No recent sales</p>
+                <p>{t('recent.sales.empty')}</p>
               </div>
             ) : (
               recentSales.map((sale) => (
@@ -267,13 +268,13 @@ export default function Overview() {
         <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
           <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Users className="w-6 h-6 text-blue-600" />
-            Top Customers
+            {t('recent.customers.title')}
           </h3>
           <div className="space-y-4">
             {recentCustomers.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500">
                 <Users className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                <p>No customer data</p>
+                <p>{t('recent.customers.empty')}</p>
               </div>
             ) : (
               recentCustomers.map((customer) => (
@@ -284,7 +285,7 @@ export default function Overview() {
                   </div>
                   <div className="text-right">
                     <div className="font-semibold text-green-600">${customer.total_spent.toFixed(2)}</div>
-                    <div className="text-xs text-gray-500">{customer.purchase_count} purchases</div>
+                    <div className="text-xs text-gray-500">{customer.purchase_count} {t('customers.purchases_label')}</div>
                   </div>
                 </div>
               ))
@@ -295,28 +296,28 @@ export default function Overview() {
 
       {/* Quick Actions */}
       <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
           <TrendingUp className="w-6 h-6 text-green-600" />
-          Quick Actions
+          {t('quick_actions.title')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <a
             href="/pharmacy-dashboard/inventory"
             className="bg-linear-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg hover:shadow-lg transition-all text-center font-semibold"
           >
-            Manage Inventory
+            {t('quick_actions.manage_inventory')}
           </a>
           <a
             href="/pharmacy-dashboard/customers"
             className="bg-linear-to-r from-green-500 to-green-600 text-white p-4 rounded-lg hover:shadow-lg transition-all text-center font-semibold"
           >
-            View Customers
+            {t('quick_actions.view_customers')}
           </a>
           <a
             href="/pharmacy-dashboard/reports"
             className="bg-linear-to-r from-purple-500 to-purple-600 text-white p-4 rounded-lg hover:shadow-lg transition-all text-center font-semibold"
           >
-            Sales Reports
+            {t('quick_actions.sales_reports')}
           </a>
         </div>
       </div>
@@ -327,14 +328,14 @@ export default function Overview() {
           <div className="flex items-center gap-3 mb-4">
             <AlertTriangle className="w-6 h-6 text-red-600" />
             <h3 className="text-lg font-bold text-red-900">
-              Low Stock Alert: {stats.low_stock_items} item(s) need attention
+              {t('low_stock.alert_title').replace('{count}', String(stats.low_stock_items))}
             </h3>
           </div>
-          <a
+            <a
             href="/pharmacy-dashboard/inventory"
             className="inline-block bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 font-semibold transition-colors"
           >
-            View Low Stock Items
+            {t('low_stock.view_button')}
           </a>
         </div>
       )}

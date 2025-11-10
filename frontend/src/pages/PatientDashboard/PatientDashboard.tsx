@@ -3,6 +3,7 @@ import PatientActionCards from "./PatientActionCards";
 import PatientSettings from "./PatientSettings";
 import { getCurrentUser } from "../../utils/auth";
 import { LogOut, Search, MapPin, User, Home, Hospital } from "lucide-react";
+import { useTranslation } from "../../i18n";
 import { useNavigate } from "react-router-dom";
 import MedicineSearch from "./MedicineSearch";
 import NearbyPharmacies from "./NearbyPharmacies";
@@ -23,6 +24,7 @@ const PatientDashboardApp: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [activeView, setActiveView] = useState<ActiveView>("home");
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const user = getCurrentUser() as unknown as AuthUser | null;
@@ -56,10 +58,8 @@ const PatientDashboardApp: React.FC = () => {
           <div className="space-y-8">
             
             <div className="bg-linear-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white">
-              <h1 className="text-4xl font-bold mb-2">Welcome!</h1>
-              <p className="text-green-100 text-lg">
-                Find medicines and locate nearby pharmacies with ease
-              </p>
+              <h1 className="text-4xl font-bold mb-2">{t('patient.welcome.title')}</h1>
+              <p className="text-green-100 text-lg">{t('patient.welcome.subtitle')}</p>
             </div>
 
             <PatientActionCards
@@ -67,36 +67,30 @@ const PatientDashboardApp: React.FC = () => {
               onFindNearby={() => setActiveView("nearby")}
             />
         <div className="bg-white rounded-xl shadow-sm p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">How It Works</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('patient.how.title')}</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
                   <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Search className="w-8 h-8 text-green-600" />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">Search Medicine</h3>
-                  <p className="text-gray-600 text-sm">
-                    Enter the name of the medicine you're looking for
-                  </p>
+                  <h3 className="font-semibold text-lg mb-2">{t('patient.how.search.title')}</h3>
+                  <p className="text-gray-600 text-sm">{t('patient.how.search.desc')}</p>
                 </div>
 
                 <div className="text-center">
                   <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Hospital className="w-8 h-8 text-blue-600" />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">Find Pharmacies</h3>
-                  <p className="text-gray-600 text-sm">
-                    View all nearby pharmacies that have your medicine
-                  </p>
+                  <h3 className="font-semibold text-lg mb-2">{t('patient.how.find.title')}</h3>
+                  <p className="text-gray-600 text-sm">{t('patient.how.find.desc')}</p>
                 </div>
 
                 <div className="text-center">
                   <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                     <MapPin className="w-8 h-8 text-purple-600" />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">Get Directions</h3>
-                  <p className="text-gray-600 text-sm">
-                    Navigate to the pharmacy with one click
-                  </p>
+                  <h3 className="font-semibold text-lg mb-2">{t('patient.how.directions.title')}</h3>
+                  <p className="text-gray-600 text-sm">{t('patient.how.directions.desc')}</p>
                 </div>
               </div>
             </div>
@@ -120,7 +114,7 @@ const PatientDashboardApp: React.FC = () => {
               />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">PharmaTrack</h1>
-                <p className="text-xs text-gray-600">Patient Portal</p>
+                <p className="text-xs text-gray-600">{t('patient.portal')}</p>
               </div>
             </div>
 
@@ -134,7 +128,7 @@ const PatientDashboardApp: React.FC = () => {
                 className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 font-semibold shadow-md transition-all"
               >
                 <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Logout</span>
+                <span className="hidden sm:inline">{t('nav.logout')}</span>
               </button>
             </div>
           </div>
@@ -144,7 +138,7 @@ const PatientDashboardApp: React.FC = () => {
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex gap-2 overflow-x-auto">
-            <button
+              <button
               onClick={() => setActiveView("home")}
               className={`py-4 px-6 border-b-2 font-semibold text-sm flex items-center gap-2 whitespace-nowrap transition-all ${
                 activeView === "home"
@@ -153,10 +147,10 @@ const PatientDashboardApp: React.FC = () => {
               }`}
             >
               <Home className="w-4 h-4" />
-              Home
+              {t('nav.home')}
             </button>
 
-            <button
+              <button
               onClick={() => setActiveView("search")}
               className={`py-4 px-6 border-b-2 font-semibold text-sm flex items-center gap-2 whitespace-nowrap transition-all ${
                 activeView === "search"
@@ -165,10 +159,10 @@ const PatientDashboardApp: React.FC = () => {
               }`}
             >
               <Search className="w-4 h-4" />
-              Search Medicines
+              {t('patient.search.card')}
             </button>
 
-            <button
+              <button
               onClick={() => setActiveView("nearby")}
               className={`py-4 px-6 border-b-2 font-semibold text-sm flex items-center gap-2 whitespace-nowrap transition-all ${
                 activeView === "nearby"
@@ -177,10 +171,10 @@ const PatientDashboardApp: React.FC = () => {
               }`}
             >
               <MapPin className="w-4 h-4" />
-              Nearby Pharmacies
+              {t('patient.nearby.card')}
             </button>
 
-            <button
+              <button
               onClick={() => setActiveView("settings")}
               className={`py-4 px-6 border-b-2 font-semibold text-sm flex items-center gap-2 whitespace-nowrap transition-all ${
                 activeView === "settings"
@@ -189,7 +183,7 @@ const PatientDashboardApp: React.FC = () => {
               }`}
             >
               <User className="w-4 h-4" />
-              Settings
+              {t('nav.settings')}
             </button>
           </nav>
         </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getSalesReports, getMockSalesHistory, getDashboardStats } from "../../utils/api";
 import { DollarSign, TrendingUp, Calendar, Loader, BarChart3, Users, Package } from "lucide-react";
+import { useTranslation } from '../../i18n';
 
 interface SalesReport {
   date: string;
@@ -21,6 +22,7 @@ interface DashboardStats {
 }
 
 export default function SalesReport() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState<SalesReport[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -73,8 +75,8 @@ export default function SalesReport() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Sales Analytics</h2>
-          <p className="text-gray-600 mt-1">Comprehensive sales reports and insights</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('sales.analytics.title')}</h2>
+          <p className="text-gray-600 mt-1">{t('sales.analytics.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <select
@@ -82,9 +84,9 @@ export default function SalesReport() {
             onChange={(e) => setPeriod(e.target.value as 'daily' | 'weekly' | 'monthly')}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
           >
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
+            <option value="daily">{t('sales.period.daily')}</option>
+            <option value="weekly">{t('sales.period.weekly')}</option>
+            <option value="monthly">{t('sales.period.monthly')}</option>
           </select>
         </div>
       </div>
@@ -92,17 +94,17 @@ export default function SalesReport() {
       {/* Summary Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-green-500 p-3 rounded-lg">
                 <DollarSign className="w-6 h-6 text-white" />
               </div>
             </div>
-            <p className="text-gray-600 text-sm">Total Revenue</p>
+            <p className="text-gray-600 text-sm">{t('sales.summary.total_revenue')}</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">
               ${stats.total_revenue}
             </p>
-            <p className="text-xs text-gray-500 mt-1">{stats.total_sales} total sales</p>
+            <p className="text-xs text-gray-500 mt-1">{stats.total_sales} {t('sales.summary.total_customers') || 'total sales'}</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
@@ -111,11 +113,11 @@ export default function SalesReport() {
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
             </div>
-            <p className="text-gray-600 text-sm">Monthly Revenue</p>
+            <p className="text-gray-600 text-sm">{t('sales.summary.monthly_revenue')}</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">
               ${stats.monthly_revenue}
             </p>
-            <p className="text-xs text-gray-500 mt-1">{stats.monthly_sales} this month</p>
+            <p className="text-xs text-gray-500 mt-1">{stats.monthly_sales} {t('dashboard.card.this_month') || 'this month'}</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
@@ -124,11 +126,11 @@ export default function SalesReport() {
                 <Users className="w-6 h-6 text-white" />
               </div>
             </div>
-            <p className="text-gray-600 text-sm">Total Customers</p>
+            <p className="text-gray-600 text-sm">{t('sales.summary.total_customers')}</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">
               {stats.total_customers}
             </p>
-            <p className="text-xs text-gray-500 mt-1">Unique customers</p>
+            <p className="text-xs text-gray-500 mt-1">{t('sales.summary.total_customers') || 'Unique customers'}</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
@@ -137,21 +139,21 @@ export default function SalesReport() {
                 <BarChart3 className="w-6 h-6 text-white" />
               </div>
             </div>
-            <p className="text-gray-600 text-sm">Average Order</p>
+            <p className="text-gray-600 text-sm">{t('sales.summary.avg_order')}</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">
               ${stats.average_order_value}
             </p>
-            <p className="text-xs text-gray-500 mt-1">Per transaction</p>
+            <p className="text-xs text-gray-500 mt-1">{t('table.header.average_ticket') || 'Per transaction'}</p>
           </div>
         </div>
       )}
 
       {/* Sales Report Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6 border-b">
+          <div className="p-6 border-b">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Calendar className="w-5 h-5" />
-            Sales Report ({period.charAt(0).toUpperCase() + period.slice(1)})
+            {t('sales.analytics.title')} ({period.charAt(0).toUpperCase() + period.slice(1)})
           </h3>
         </div>
         <div className="overflow-x-auto">
@@ -159,16 +161,16 @@ export default function SalesReport() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
+                  {t('table.header.date')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sales Count
+                  {t('table.header.sales_count')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Revenue
+                  {t('table.header.revenue')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Average Ticket
+                  {t('table.header.average_ticket')}
                 </th>
               </tr>
             </thead>
@@ -177,8 +179,8 @@ export default function SalesReport() {
                 <tr>
                   <td colSpan={4} className="px-6 py-10 text-center text-gray-500">
                     <BarChart3 className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <p className="text-lg font-medium">No sales data available</p>
-                    <p className="text-sm mt-1">Sales will appear here after transactions</p>
+                    <p className="text-lg font-medium">{t('sales.no_reports.title')}</p>
+                    <p className="text-sm mt-1">{t('sales.no_reports.desc')}</p>
                   </td>
                 </tr>
               ) : (
@@ -210,7 +212,7 @@ export default function SalesReport() {
       {/* Recent Sales */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold">Recent Transactions</h3>
+            <h3 className="text-lg font-semibold">{t('recent.transactions.title')}</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -240,7 +242,7 @@ export default function SalesReport() {
               {recentSales.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
-                    No recent transactions
+                    {t('recent.transactions.no_data')}
                   </td>
                 </tr>
               ) : (
