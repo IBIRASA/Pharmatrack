@@ -1,37 +1,37 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from '../i18n';
 
 export default function NotFound() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
       <div className="max-w-3xl w-full bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="md:flex">
           <div className="p-8 md:w-1/2 flex flex-col items-start justify-center">
             <h1 className="text-6xl font-extrabold text-green-700 leading-none">404</h1>
-            <h2 className="mt-3 text-2xl font-semibold text-gray-800">Page not found</h2>
-            <p className="mt-3 text-gray-600">
-              The page you're looking for doesn't exist or was moved. Check the URL or try one of the actions below.
-            </p>
+            <h2 className="mt-3 text-2xl font-semibold text-gray-800">{t('notfound.title')}</h2>
+            <p className="mt-3 text-gray-600">{t('notfound.message')}</p>
 
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 to="/"
                 className="inline-block px-5 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition"
               >
-                Go to Home
+                {t('notfound.go_home')}
               </Link>
 
               <Link
                 to="/login"
                 className="inline-block px-5 py-2 rounded-lg border border-green-600 text-green-600 font-medium hover:bg-green-50 transition"
               >
-                Sign in to search
+                {t('notfound.signin_search')}
               </Link>
 
               <Link
                 to="/pharmacy-dashboard"
                 className="inline-block px-5 py-2 rounded-lg bg-gray-100 text-gray-800 font-medium hover:bg-gray-200 transition"
               >
-                Pharmacy dashboard
+                {t('notfound.pharmacy_dashboard')}
               </Link>
             </div>
           </div>

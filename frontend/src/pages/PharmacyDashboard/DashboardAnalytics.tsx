@@ -14,6 +14,7 @@ import {
 } from "chart.js";
 import { TrendingUp, AlertTriangle, CalendarX, Package, Loader2 } from "lucide-react";
 import { getDashboardStats } from "../../utils/api";
+import { useTranslation } from '../../i18n';
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Title, Tooltip, Filler, Legend);
 
@@ -44,6 +45,7 @@ const DashboardAnalytics: React.FC = () => {
   });
   const [weeklySales, setWeeklySales] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstance = useRef<Chart<"line", number[], string> | null>(null);
@@ -65,7 +67,7 @@ const DashboardAnalytics: React.FC = () => {
     setLoading(true);
     try {
       const data = await getDashboardStats();
-      // Map API DashboardStats to the local Stats shape
+     
       setStats({
         today_sales: Number(data.today_sales) || 0,
         expired_items: (data as any).expired_items || 0,
@@ -73,7 +75,6 @@ const DashboardAnalytics: React.FC = () => {
         total_medicines: (data as any).total_medicines || 0,
         weekly_sales: Array.isArray(data.weekly_sales) ? data.weekly_sales.map(n => Number(n || 0)) : [],
       });
-      // ensure we always pass an array of 7 numbers to the chart
       const wk = (Array.isArray(data.weekly_sales) ? data.weekly_sales : []);
       const padded = [...wk].concat(Array(7 - wk.length).fill(0)).slice(0, 7).map(n => Number(n || 0));
       setWeeklySales(padded);
@@ -94,7 +95,7 @@ const DashboardAnalytics: React.FC = () => {
       data: {
         labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
         datasets: [{
-          label: "Sales",
+          label: t('dashboard.chart.sales'),
           data: weeklySales,
           borderColor: "#10b981",
           backgroundColor: "rgba(16, 185, 129, 0.1)",
@@ -137,15 +138,15 @@ const DashboardAnalytics: React.FC = () => {
   };
 
   const cards: StatCard[] = [
-    { title: "Today's Sales", value: `$${stats.today_sales.toFixed(2)}`, icon: <TrendingUp />, color: "blue" },
-    { title: "Low Stock Items", value: stats.low_stock_items, icon: <AlertTriangle />, color: "red" },
-    { title: "Expired Items", value: stats.expired_items, icon: <CalendarX />, color: "orange" },
-    { title: "Total Medicines", value: stats.total_medicines, icon: <Package />, color: "green" },
+    { title: t('dashboard.card.today_sales'), value: `$${stats.today_sales.toFixed(2)}`, icon: <TrendingUp />, color: "blue" },
+    { title: t('dashboard.card.low_stock'), value: stats.low_stock_items, icon: <AlertTriangle />, color: "red" },
+    { title: t('dashboard.card.expired_items'), value: stats.expired_items, icon: <CalendarX />, color: "orange" },
+    { title: t('dashboard.card.total_medicines'), value: stats.total_medicines, icon: <Package />, color: "green" },
   ];
 
   return (
     <div className="p-6 space-y-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Dashboard Overview</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">{t('dashboard.overview.title')}</h1>
 
       {loading ? (
         <div className="flex justify-center items-center p-20">
@@ -176,7 +177,7 @@ const DashboardAnalytics: React.FC = () => {
 
           {/* Sales Chart */}
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-md p-6 flex flex-col">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Weekly Sales</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">{t('dashboard.weekly_sales')}</h2>
             <div className="flex-1 min-h-[160px] md:min-h-[300px]">
               <canvas ref={chartRef} className="w-full h-56 md:h-72" />
             </div>

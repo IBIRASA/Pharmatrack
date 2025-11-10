@@ -11,23 +11,24 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { useTranslation } from '../i18n';
 
 type IconType = React.ComponentType<{ className?: string }>;
 
-const items: Array<{ to: string; label: string; icon: IconType; end?: boolean }> = [
-  { to: '/pharmacy-dashboard', label: 'Overview', icon: TrendingUpIcon, end: true },
-  { to: '/pharmacy-dashboard/inventory', label: 'Inventory', icon: PackageIcon },
-  { to: '/pharmacy-dashboard/orders', label: 'Orders', icon: ShoppingCartIcon },
-  { to: '/pharmacy-dashboard/customers', label: 'Customers', icon: UsersIcon },
-  { to: '/pharmacy-dashboard/reports', label: 'Reports', icon: CalendarIcon },
-  { to: '/pharmacy-dashboard/settings', label: 'Settings', icon: SettingsIcon },
-];
 
 export default function PharmacySidebar() {
+  const { t } = useTranslation();
+  const items: Array<{ to: string; label: string; icon: IconType; end?: boolean }> = [
+    { to: '/pharmacy-dashboard', label: t('pharmacy.side.overview'), icon: TrendingUpIcon, end: true },
+    { to: '/pharmacy-dashboard/inventory', label: t('pharmacy.side.inventory'), icon: PackageIcon },
+    { to: '/pharmacy-dashboard/orders', label: t('pharmacy.side.orders'), icon: ShoppingCartIcon },
+    { to: '/pharmacy-dashboard/customers', label: t('pharmacy.side.customers'), icon: UsersIcon },
+    { to: '/pharmacy-dashboard/reports', label: t('pharmacy.side.reports'), icon: CalendarIcon },
+    { to: '/pharmacy-dashboard/settings', label: t('pharmacy.side.settings'), icon: SettingsIcon },
+  ];
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Listen for Header toggle (mobile only)
   useEffect(() => {
     const handleToggle = () => setMobileOpen((prev) => !prev);
     window.addEventListener('toggleSidebar', handleToggle);
@@ -52,11 +53,11 @@ export default function PharmacySidebar() {
         ${collapsed ? 'w-20' : 'w-64'}`}
       >
         {/* Collapse / Expand Button (desktop only) */}
-        <div className="hidden md:flex items-center justify-end p-3 border-b">
+          <div className="hidden md:flex items-center justify-end p-3 border-b">
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="p-2 rounded-lg hover:bg-gray-100 transition"
-            aria-label="Toggle sidebar"
+            aria-label={t('aria.toggle_sidebar') || 'Toggle sidebar'}
           >
             {collapsed ? (
               <ChevronRight className="w-5 h-5 text-gray-600" />

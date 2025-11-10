@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Navigation, Mail, Package, DollarSign, Loader, AlertCircle } from 'lucide-react';
 import { getMedicines, type Medicine as APIMedicine } from '../../utils/api';
+import { useTranslation } from '../../i18n';
 
 interface Medicine extends APIMedicine {
   pharmacy_name: string;
@@ -64,12 +65,14 @@ export default function MedicineSearch() {
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
   };
 
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-lg">
-        <h2 className="text-3xl font-bold mb-2">Find Your Medicine</h2>
-        <p className="text-green-50">Search for medicines and discover pharmacies that have them in stock</p>
+        <h2 className="text-3xl font-bold mb-2">{t('medicine_search.title')}</h2>
+        <p className="text-green-50">{t('medicine_search.subtitle')}</p>
       </div>
 
       {/* Search Bar */}
@@ -80,7 +83,7 @@ export default function MedicineSearch() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Enter medicine name (e.g., Paracetamol, Aspirin, Ibuprofen...)"
+                placeholder={t('medicine_search.placeholder')}
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -97,12 +100,12 @@ export default function MedicineSearch() {
               {loading ? (
                 <>
                   <Loader className="w-5 h-5 animate-spin" />
-                  Searching...
+                  {t('medicine_search.searching')}
                 </>
               ) : (
                 <>
                   <Search className="w-5 h-5" />
-                  Search
+                  {t('medicine_search.search_button')}
                 </>
               )}
             </button>
@@ -121,17 +124,16 @@ export default function MedicineSearch() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <Loader className="w-12 h-12 animate-spin text-green-600 mb-4" />
-          <p className="text-gray-600 font-medium">Searching for medicines...</p>
+          <p className="text-gray-600 font-medium">{t('medicine_search.searching')}</p>
         </div>
       ) : searched && results.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Package className="w-10 h-10 text-gray-400" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">No Results Found</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">{t('medicine_search.no_results_title')}</h3>
           <p className="text-gray-600 max-w-md mx-auto">
-            We couldn't find any pharmacies with "<span className="font-semibold">{searchQuery}</span>" in stock. 
-            Try searching with a different name or check the spelling.
+            {t('medicine_search.no_results_desc').replace('{query}', searchQuery)}
           </p>
         </div>
       ) : searched && results.length > 0 ? (
@@ -141,7 +143,7 @@ export default function MedicineSearch() {
             <div className="flex items-center gap-2 text-green-800">
               <Package className="w-5 h-5" />
               <span className="font-semibold">
-                Found {results.length} medicine(s) available in {Object.keys(groupedByPharmacy).length} pharmacy(ies)
+                {t('medicine_search.found_summary').replace('{count}', String(results.length)).replace('{pharmacies}', String(Object.keys(groupedByPharmacy).length))}
               </span>
             </div>
           </div>
@@ -171,14 +173,14 @@ export default function MedicineSearch() {
                           className="bg-white text-green-600 px-5 py-2.5 rounded-lg hover:bg-green-50 font-semibold flex items-center gap-2 text-sm shadow-md transition-all"
                         >
                           <Navigation className="w-4 h-4" />
-                          Get Directions
+                          {t('medicine_search.get_directions')}
                         </button>
                         <a
                           href={`mailto:${data.pharmacy_email}?subject=Medicine Inquiry: ${searchQuery}`}
                           className="bg-green-700 text-white px-5 py-2.5 rounded-lg hover:bg-green-800 font-semibold flex items-center gap-2 text-sm shadow-md transition-all"
                         >
                           <Mail className="w-4 h-4" />
-                          Contact Pharmacy
+                          {t('medicine_search.contact_pharmacy')}
                         </a>
                       </div>
                     </div>

@@ -7,6 +7,10 @@
             --text-dark: #1f2937;
             --text-light: #6b7280;
             --bg-light: #f9fafb;
+        /* card and surface colors (default - light) */
+        --surface-bg: #ffffff;
+        --page-bg: #f9fafb;
+        --muted-text: #6b7280;
         }
     }
 
@@ -166,3 +170,104 @@ section[id], div[id] {
   scrollbar-width: none; /* Firefox */
 }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Dark mode variable overrides when .dark is present on <html> */
+.dark {
+  --primary-color: #34d399;
+  --secondary-color: #10b981;
+  --accent-color: #059669;
+  --text-dark: #e5e7eb; /* light text */
+  --text-light: #9ca3af;
+  --bg-light: #0b1220;
+  --surface-bg: #0f1724;
+  --page-bg: #071022;
+  --muted-text: #9ca3af;
+}
+
+/* Apply page & surface colors using CSS variables to override static Tailwind colors where needed */
+body {
+  background-color: var(--page-bg);
+  color: var(--text-dark);
+}
+
+/* Override common utility classes used for cards and surfaces so dark mode shows correctly */
+.bg-white { background-color: var(--surface-bg) !important; }
+.bg-gray-50 { background-color: var(--page-bg) !important; }
+.text-gray-900 { color: var(--text-dark) !important; }
+.text-gray-600 { color: var(--muted-text) !important; }
+.border-gray-200 { border-color: rgba(255,255,255,0.06) !important; }
+.shadow-md { box-shadow: 0 6px 18px rgba(2,6,23,0.5) !important; }
+.shadow-lg { box-shadow: 0 12px 30px rgba(2,6,23,0.6) !important; }
+
+/* Catch Tailwind utility variants that include opacity or suffixes like bg-white/80 */
+[class*="bg-white"] { background-color: var(--surface-bg) !important; }
+[class*="bg-gray-50"] { background-color: var(--page-bg) !important; }
+[class*="text-gray-900"] { color: var(--text-dark) !important; }
+[class*="text-gray-700"] { color: var(--text-dark) !important; }
+[class*="text-gray-600"] { color: var(--muted-text) !important; }
+[class*="border-gray-100"] { border-color: rgba(255,255,255,0.04) !important; }
+[class*="border-gray-200"] { border-color: rgba(255,255,255,0.06) !important; }
+
+/* Inputs and form elements that use disabled:bg-gray-100 etc */
+[class*="bg-gray-100"] { background-color: var(--surface-bg) !important; }
+
+/* Remove decorative gradients (used on pages like Login/Register) when dark mode is active so page background shows dark color */
+.dark [class*="bg-linear-to"] {
+  background-image: none !important;
+  background-color: var(--page-bg) !important;
+}
+.dark [class*="from-"] {
+  background-image: none !important;
+  background-color: var(--page-bg) !important;
+}
+.dark [class*="via-"] {
+  background-image: none !important;
+  background-color: var(--page-bg) !important;
+}
+.dark [class*="to-"] {
+  background-image: none !important;
+  background-color: var(--page-bg) !important;
+}
+
+/* Keep footer appearance constant regardless of theme */
+#footer {
+  /* explicit footer palette to avoid dark-mode overrides */
+  background-color: #0b1220 !important; /* deep navy - matches original dark footer */
+  color: #ffffff !important;
+}
+#footer a { color: #ffffff !important; }
+#footer img { filter: none !important; }
+
+/* Form inputs in dark mode: solid dark backgrounds and white text; focused state with green ring */
+.dark input,
+.dark textarea,
+.dark select,
+.dark .rounded-xl,
+.dark .rounded-lg {
+  /* Use the theme surface color instead of pure black so form fields match dark theme */
+  background-color: var(--surface-bg) !important;
+  /* text-dark is light in dark mode (e.g. #e5e7eb) */
+  color: var(--text-dark) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  /* use muted/light text color from theme for placeholders */
+  color: var(--text-light) !important;
+}
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus,
+.dark .rounded-xl:focus,
+.dark .rounded-lg:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.12) !important; /* subtle green ring */
+  border-color: #10b981 !important;
+}
+
+
+
+/* Smooth transition when toggling theme */
+html, body, .bg-white, .bg-gray-50, .text-gray-900, .text-gray-600 {
+  transition: background-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+}

@@ -1,5 +1,6 @@
 import{ useState, useEffect } from 'react';
 import { Loader, AlertCircle, MapPin, Navigation, ExternalLink, Clock } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 
 interface PharmacyItem {
   opening_hours: any;
@@ -16,6 +17,7 @@ interface PharmacyItem {
 }
 
 export default function NearbyPharmacies() {
+  const { t } = useTranslation();
   const [pharmacies, setPharmacies] = useState<PharmacyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -35,8 +37,6 @@ export default function NearbyPharmacies() {
     const distance = R * c;
     return Math.round(distance * 10) / 10; // Round to 1 decimal place
   };
-
-  // Get user's approximate address for better context
   const getUserAddress = async (lat: number, lon: number): Promise<string> => {
     try {
       const response = await fetch(
@@ -79,7 +79,7 @@ export default function NearbyPharmacies() {
         }
       }
 
-      // Remove duplicates and sort by distance
+  
       const uniquePharmacies = foundPharmacies.filter((pharmacy, index, self) =>
         index === self.findIndex(p => p.id === pharmacy.id)
       );
@@ -91,14 +91,14 @@ export default function NearbyPharmacies() {
       setPharmacies(finalPharmacies);
 
       if (finalPharmacies.length === 0) {
-        setError(`No pharmacies found within ${radius}km of your location. Try increasing the search radius.`);
+        setError(t('patient.nearby.no_within').replace('{km}', String(radius)));
       } else {
         console.log('Final pharmacies found:', finalPharmacies.length);
       }
 
     } catch (err: any) {
       console.error(' Error finding nearby pharmacies:', err);
-      setError('Failed to load nearby pharmacies. Please check your internet connection and try again.');
+      setError(t('modals.nearby.failed'));
     } finally {
       setLoading(false);
     }
@@ -184,7 +184,7 @@ export default function NearbyPharmacies() {
   // Automatically get location when component mounts
   useEffect(() => {
     if (!navigator.geolocation) { 
-      setError('Geolocation not supported by your browser. Please enable location services or use a different browser.');
+      setError(t('patient.nearby.geolocation_unsupported'));
       setLoading(false);
       return;
     }
@@ -203,17 +203,13 @@ export default function NearbyPharmacies() {
       },
       (err) => {
         console.error('Location error:', err);
-        let errorMessage = 'Location access denied. ';
-        
         if (err.code === err.PERMISSION_DENIED) {
-          errorMessage += 'Please allow location access in your browser settings to find nearby pharmacies.';
+          setError(t('patient.nearby.permission_denied'));
         } else if (err.code === err.TIMEOUT) {
-          errorMessage += 'Location request timed out. Please check your connection and try again.';
+          setError(t('patient.nearby.request_timeout'));
         } else {
-          errorMessage += 'Please enable location services to find nearby pharmacies.';
+          setError(t('patient.nearby.enable_services'));
         }
-        
-        setError(errorMessage);
         setLoading(false);
       },
       { 
@@ -254,20 +250,20 @@ export default function NearbyPharmacies() {
   return (
     <div className="p-4 max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <MapPin className="text-blue-600" size={28} />
+        <MapPin className="text-green-600" size={28} />
         <div className="flex-1">
-          <h2 className="text-2xl font-bold text-gray-800">Nearby Pharmacies</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t('modals.nearby.title')}</h2>
           <p className="text-gray-600 text-sm">
-            {userLocation 
-              ? `Pharmacies within ${searchRadius}km of your current location`
-              : 'Finding your location...'
+            {userLocation
+              ? t('patient.nearby.within').replace('{km}', String(searchRadius))
+              : t('patient.nearby.finding_location')
             }
           </p>
         </div>
         
         {/* Radius Selector */}
         <div className="flex items-center gap-2 bg-white border rounded-lg px-3 py-2">
-          <span className="text-sm text-gray-600 whitespace-nowrap">Search radius:</span>
+          <span className="text-sm text-gray-600 whitespace-nowrap">{t('patient.nearby.radius_label')}</span>
           <select 
             value={searchRadius}
             onChange={(e) => handleRadiusChange(Number(e.target.value))}
@@ -285,9 +281,9 @@ export default function NearbyPharmacies() {
       {loading && (
         <div className="flex flex-col items-center justify-center gap-3 text-blue-600 py-12">
           <Loader className="animate-spin" size={32} /> 
-          <span className="text-lg">Searching for nearby pharmacies...</span>
+          <span className="text-lg">{t('patient.nearby.searching')}</span>
           <span className="text-sm text-gray-500">
-            Looking within {searchRadius}km radius
+            {t('patient.nearby.looking_within').replace('{km}', String(searchRadius))}
           </span>
         </div>
       )}
@@ -296,28 +292,28 @@ export default function NearbyPharmacies() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <div className="flex items-center gap-2 text-red-700 mb-2">
             <AlertCircle size={18} /> 
-            <span className="font-medium">Unable to find pharmacies</span>
+            <span className="font-medium">{t('patient.nearby.unable_title')}</span>
           </div>
           <p className="text-red-600 text-sm mb-3">{error}</p>
           <div className="flex gap-2 flex-wrap">
             <button 
               onClick={handleRetry}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+              className="bg-green-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
             >
-              Try Again
+              {t('patient.nearby.try_again')}
             </button>
             <button 
               onClick={() => handleRadiusChange(searchRadius + 5)}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
             >
-              Increase Search Radius
+              {t('patient.nearby.increase_radius')}
             </button>
             <button 
               onClick={() => window.open('https://www.google.com/maps/search/pharmacy/', '_blank')}
               className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
             >
               <ExternalLink size={14} />
-              Search Google Maps
+              {t('patient.nearby.search_google_maps')}
             </button>
           </div>
         </div>
@@ -327,10 +323,10 @@ export default function NearbyPharmacies() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-600">
-              Found {pharmacies.length} pharmacy{pharmacies.length !== 1 ? 's' : ''} nearby
+              {t('patient.nearby.found_count').replace('{count}', String(pharmacies.length))}
             </div>
             <div className="text-xs text-gray-500">
-              Sorted by distance • Updated just now
+              {t('patient.nearby.sorted_updated')}
             </div>
           </div>
           
@@ -358,7 +354,7 @@ export default function NearbyPharmacies() {
                     
                     {pharmacy.phone !== 'Phone not available' && (
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">Phone:</span>
+                        <span className="font-medium">{t('patient.nearby.phone_label')}</span>
                         <a 
                           href={`tel:${pharmacy.phone}`}
                           className="text-blue-600 hover:text-blue-800"
@@ -382,17 +378,17 @@ export default function NearbyPharmacies() {
                 <div className="flex flex-col gap-2 ml-4">
                   <button
                     onClick={() => getDirections(pharmacy)}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors whitespace-nowrap"
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors whitespace-nowrap"
                   >
                     <Navigation size={16} />
-                    Directions
+                    {t('patient.nearby.directions')}
                   </button>
                   <button
                     onClick={() => viewOnGoogleMaps(pharmacy)}
-                    className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors whitespace-nowrap"
+                    className="flex items-center gap-2 bg-gray-400 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors whitespace-nowrap"
                   >
                     <ExternalLink size={16} />
-                    View Map
+                    {t('patient.nearby.view_map')}
                   </button>
                 </div>
               </div>
@@ -404,21 +400,21 @@ export default function NearbyPharmacies() {
       {!loading && pharmacies.length === 0 && !error && (
         <div className="text-center py-12 text-gray-500">
           <MapPin size={48} className="mx-auto mb-3 text-gray-300" />
-          <p className="text-lg mb-2">No pharmacies found nearby</p>
-          <p className="text-sm mb-4">Try increasing the search radius or check Google Maps directly</p>
+          <p className="text-lg mb-2">{t('modals.nearby.none_found')}</p>
+          <p className="text-sm mb-4">{t('patient.nearby.search_google_maps')}</p>
           <div className="flex gap-2 justify-center">
             <button 
               onClick={() => handleRadiusChange(searchRadius + 5)}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium transition-colors"
             >
-              Increase Radius to {searchRadius + 5}km
+              {t('patient.nearby.increase_radius')} {searchRadius + 5}km
             </button>
             <button 
               onClick={() => window.open('https://www.google.com/maps/search/pharmacy/', '_blank')}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition-colors"
+              className="flex items-center gap-2 bg-green-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition-colors"
             >
               <ExternalLink size={16} />
-              Search Google Maps
+              {t('patient.nearby.search_google_maps')}
             </button>
           </div>
         </div>

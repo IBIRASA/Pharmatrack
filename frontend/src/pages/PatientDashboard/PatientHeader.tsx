@@ -2,6 +2,7 @@ import React from "react";
 import { Home, Search, Settings, LogOut } from "lucide-react";
 import { getUserDisplayName, logout } from "../../utils/auth";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "../../i18n";
 
 interface PatientHeaderProps {
   activeView: "home" | "search" | "settings";
@@ -11,6 +12,7 @@ interface PatientHeaderProps {
 const PatientHeader: React.FC<PatientHeaderProps> = ({ activeView, onNavigate }) => {
   const navigate = useNavigate();
   const displayName = getUserDisplayName();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     logout();
@@ -18,9 +20,9 @@ const PatientHeader: React.FC<PatientHeaderProps> = ({ activeView, onNavigate })
   };
 
   const navItems = [
-    { id: "home" as const, label: "Home", icon: Home },
-    { id: "search" as const, label: "Search Medicine", icon: Search },
-    { id: "settings" as const, label: "Settings", icon: Settings },
+    { id: "home" as const, label: t('nav.home'), icon: Home },
+    { id: "search" as const, label: t('search.cta'), icon: Search },
+    { id: "settings" as const, label: t('nav.settings'), icon: Settings },
   ];
 
   return (
@@ -28,13 +30,13 @@ const PatientHeader: React.FC<PatientHeaderProps> = ({ activeView, onNavigate })
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate("home")}>
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate("home")}>
             <div className="bg-green-600 text-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl">
               P
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">PharmaTrack</h1>
-              <p className="text-xs text-gray-500">Patient Portal</p>
+              <p className="text-xs text-gray-500">{t('patient.portal')}</p>
             </div>
           </div>
 
@@ -58,17 +60,17 @@ const PatientHeader: React.FC<PatientHeaderProps> = ({ activeView, onNavigate })
           </nav>
 
           {/* User Info & Logout */}
-          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4">
             <div className="hidden sm:block text-right">
               <p className="text-sm font-semibold text-gray-900">{displayName}</p>
-              <p className="text-xs text-gray-500">Patient Account</p>
+              <p className="text-xs text-gray-500">{t('patient.account')}</p>
             </div>
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             >
               <LogOut className="w-5 h-5" />
-              <span className="hidden sm:inline">Logout</span>
+              <span className="hidden sm:inline">{t('nav.logout')}</span>
             </button>
           </div>
         </div>

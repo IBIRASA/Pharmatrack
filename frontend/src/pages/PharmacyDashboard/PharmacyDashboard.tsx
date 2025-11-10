@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { LogOut, Menu } from "lucide-react";
+import { useTranslation } from "../../i18n";
 import PharmacySidebar from "../../components/PharmacySidebar";
 import Overview from "./Overview";
 import InventoryManager from "./InventoryManager";
@@ -11,6 +12,7 @@ import PharmacySettings from "./PharmacySettings";
 
 export default function PharmacyDashboard() {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     logout();
@@ -32,7 +34,7 @@ export default function PharmacyDashboard() {
               <button
                 onClick={handleSidebarToggle}
                 className="md:hidden p-2 rounded-lg hover:bg-gray-100"
-                aria-label="Open sidebar"
+                aria-label={t('aria.open_sidebar') || 'Open sidebar'}
               >
                 <Menu className="w-6 h-6 text-gray-700" />
               </button>
@@ -42,7 +44,7 @@ export default function PharmacyDashboard() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">PharmaTrack</h1>
-                <p className="text-xs text-gray-600">Pharmacy Dashboard</p>
+                <p className="text-xs text-gray-600">{t('pharmacy.dashboard.title')}</p>
               </div>
             </div>
 
@@ -61,7 +63,7 @@ export default function PharmacyDashboard() {
                 className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 text-sm sm:text-base font-medium transition-colors shadow-md hover:shadow-lg"
               >
                 <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Logout</span>
+                <span className="hidden sm:inline">{t('nav.logout')}</span>
               </button>
             </div>
           </div>

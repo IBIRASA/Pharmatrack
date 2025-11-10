@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { registerUser } from "../utils/api";
 import { UserPlus, Mail, Lock, User, Phone, MapPin, AlertCircle,Hospital } from "lucide-react";
 import logo from "../assets/logo.png";
+import { useTranslation } from '../i18n';
 export default function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -16,13 +17,14 @@ export default function Register() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     if (formData.password !== formData.password_confirm) {
-      setError("Passwords do not match");
+      setError(t('auth.register.password_mismatch'));
       return;
     }
 
@@ -31,7 +33,7 @@ export default function Register() {
       await registerUser(formData);
       navigate("/login", { replace: true });
     } catch (err: any) {
-      setError(err?.detail || "Registration failed. Please try again.");
+      setError(err?.detail || t('auth.register.failed'));
     } finally {
       setLoading(false);
     }
@@ -44,15 +46,13 @@ export default function Register() {
         <div className="text-center">
           <img
             src={logo}
-            alt="PharmaFinder logo"
+            alt={t('alt.logo') || 'PharmaFinder logo'}
             className="w-20 h-20 mx-auto rounded-full object-contain shadow-md mb-4"
           />
           
-          <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
+          <h2 className="text-3xl font-bold text-gray-900">{t('auth.register.title')}</h2>
           <p className="mt-2 text-gray-600">
-            Join{" "}
-            <span className="text-green-700 font-medium">PharmaFinder</span>{" "}
-            today
+            {t('auth.register.subtitle').replace('{app}', 'PharmaFinder')}
           </p>
         </div>
 
@@ -62,7 +62,7 @@ export default function Register() {
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
               <div>
-                <p className="text-red-800 font-semibold">Error</p>
+                <p className="text-red-800 font-semibold">{t('error.title')}</p>
                 <p className="text-red-700 text-sm">{error}</p>
               </div>
             </div>
@@ -71,7 +71,7 @@ export default function Register() {
           {/* User Type */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
-              I am a:
+              {t('auth.register.user_type')}
             </label>
             <div className="grid grid-cols-2 gap-4">
               <button
@@ -86,7 +86,7 @@ export default function Register() {
                 }`}
               >
                 <User className="w-6 h-6 mx-auto mb-2" />
-                <span className="font-semibold">Patient</span>
+                <span className="font-semibold">{t('auth.register.patient')}</span>
               </button>
               <button
                 type="button"
@@ -100,7 +100,7 @@ export default function Register() {
                 }`}
               >
                 <Hospital className="w-6 h-6 mx-auto mb-2" />
-                <span className="font-semibold">Pharmacy</span>
+                <span className="font-semibold">{t('auth.register.pharmacy')}</span>
               </button>
             </div>
           </div>
@@ -112,8 +112,8 @@ export default function Register() {
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
               {formData.user_type === "pharmacy"
-                ? "Pharmacy Name"
-                : "Full Name"}
+                ? t('auth.register.name.pharmacy')
+                : t('auth.register.name.person')}
             </label>
             <input
               id="name"
@@ -127,8 +127,8 @@ export default function Register() {
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 transition-all"
               placeholder={
                 formData.user_type === "pharmacy"
-                  ? "Your pharmacy name"
-                  : "Your full name"
+                  ? t('auth.register.placeholder.address')
+                  : t('auth.register.placeholder.name')
               }
             />
           </div>
@@ -139,7 +139,7 @@ export default function Register() {
               htmlFor="email"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Email Address
+              {t('auth.register.email')}
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -153,7 +153,7 @@ export default function Register() {
                   setFormData({ ...formData, email: e.target.value })
                 }
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 transition-all"
-                placeholder="your.email@example.com"
+                placeholder={t('auth.register.placeholder.email')}
               />
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function Register() {
               htmlFor="phone"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Phone Number
+              {t('auth.register.phone')}
             </label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -178,7 +178,7 @@ export default function Register() {
                   setFormData({ ...formData, phone: e.target.value })
                 }
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 transition-all"
-                placeholder="+250 XXX XXX XXX"
+                placeholder={t('auth.register.placeholder.phone')}
               />
             </div>
           </div>
@@ -190,7 +190,7 @@ export default function Register() {
                 htmlFor="address"
                 className="block text-sm font-semibold text-gray-700 mb-2"
               >
-                Address
+                {t('auth.register.address')}
               </label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -204,7 +204,7 @@ export default function Register() {
                     setFormData({ ...formData, address: e.target.value })
                   }
                   className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 transition-all"
-                  placeholder="Pharmacy location"
+                  placeholder={t('auth.register.placeholder.address')}
                 />
               </div>
             </div>
@@ -216,7 +216,7 @@ export default function Register() {
               htmlFor="password"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Password
+              {t('auth.register.password')}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -230,7 +230,7 @@ export default function Register() {
                   setFormData({ ...formData, password: e.target.value })
                 }
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 transition-all"
-                placeholder="Create a strong password"
+                placeholder={t('auth.register.placeholder.password') ?? 'Create a strong password'}
               />
             </div>
           </div>
@@ -241,7 +241,7 @@ export default function Register() {
               htmlFor="password_confirm"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Confirm Password
+              {t('auth.register.confirm_password')}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -258,7 +258,7 @@ export default function Register() {
                   })
                 }
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 transition-all"
-                placeholder="Confirm your password"
+                placeholder={t('auth.register.placeholder.confirm') ?? 'Confirm your password'}
               />
             </div>
           </div>
@@ -272,12 +272,12 @@ export default function Register() {
             {loading ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                Creating account...
+                {t('auth.register.creating')}
               </>
             ) : (
               <>
                 <UserPlus className="w-5 h-5" />
-                Create Account
+                {t('auth.register.create')}
               </>
             )}
           </button>
@@ -286,12 +286,12 @@ export default function Register() {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-sm text-gray-600">
-            Already have an account?{" "}
+            {t('auth.register.already')} {" "}
             <Link
               to="/login"
               className="text-green-600 font-semibold hover:text-green-700 hover:underline transition-colors"
             >
-              Sign In
+              {t('auth.register.signin')}
             </Link>
           </p>
         </div>

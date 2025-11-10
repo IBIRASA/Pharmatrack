@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getCustomers } from '../../utils/api';
 import { Users, Phone, Calendar, DollarSign, ShoppingCart, Loader } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 
 interface Customer {
   id: string;
@@ -13,6 +14,7 @@ interface Customer {
 }
 
 export default function Customers() {
+  const { t } = useTranslation();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,11 +52,11 @@ export default function Customers() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Customers</h2>
-          <p className="text-gray-600 mt-1">Manage your customer relationships</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('customers.title')}</h2>
+          <p className="text-gray-600 mt-1">{t('customers.subtitle')}</p>
         </div>
         <div className="text-sm text-gray-600">
-          <span className="font-semibold">{customers.length}</span> total customers
+          <span className="font-semibold">{customers.length}</span> {t('customers.total_label')}
         </div>
       </div>
 
@@ -64,7 +66,7 @@ export default function Customers() {
           <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Search customers by name or phone..."
+            placeholder={t('customers.search.placeholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -77,9 +79,9 @@ export default function Customers() {
         {filteredCustomers.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No customers found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('customers.no_found.title')}</h3>
             <p className="text-gray-600">
-              {searchTerm ? 'Try adjusting your search terms' : 'Customers will appear here after sales are made'}
+              {searchTerm ? t('customers.no_found.try') : t('customers.no_data')}
             </p>
           </div>
         ) : (
@@ -96,24 +98,24 @@ export default function Customers() {
                     <span className="text-sm">{customer.phone}</span>
                   </div>
                 </div>
-                <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">
-                  {customer.purchase_count} {customer.purchase_count === 1 ? 'sale' : 'sales'}
+                  <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">
+                  {customer.purchase_count} {customer.purchase_count === 1 ? t('customers.sales_singular') : t('customers.sales_plural')}
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
                     <ShoppingCart className="w-4 h-4" />
-                    <span>Total Purchases</span>
+                    <span>{t('customers.total_purchases')}</span>
                   </div>
-                  <span className="font-semibold text-gray-900">{customer.total_purchases} items</span>
+                  <span className="font-semibold text-gray-900">{customer.total_purchases} {t('customers.purchases_label') || 'items'}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
                     <DollarSign className="w-4 h-4" />
-                    <span>Total Spent</span>
+                    <span>{t('customers.total_spent')}</span>
                   </div>
                   <span className="font-semibold text-green-600">
                     ${customer.total_spent.toFixed(2)}
@@ -121,9 +123,9 @@ export default function Customers() {
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Calendar className="w-4 h-4" />
-                    <span>Last Purchase</span>
+                    <span>{t('customers.last_purchase')}</span>
                   </div>
                   <span className="text-sm text-gray-600">
                     {new Date(customer.last_purchase).toLocaleDateString()}
@@ -133,7 +135,7 @@ export default function Customers() {
 
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="text-xs text-gray-500">
-                  Customer since {new Date(customer.last_purchase).toLocaleDateString()}
+                  {t('customers.customer_since')} {new Date(customer.last_purchase).toLocaleDateString()}
                 </div>
               </div>
             </div>

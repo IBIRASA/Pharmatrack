@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getOrders, updateOrder, deleteOrder } from '../../utils/api';
 import { Package, Loader, AlertCircle, CheckCircle, Clock, XCircle, Trash2} from 'lucide-react';
+import { useTranslation } from '../../i18n';
 
 interface Order {
   id: number;
@@ -12,6 +13,7 @@ interface Order {
 }
 
 export default function Orders() {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -28,7 +30,7 @@ export default function Orders() {
       setOrders(data);
     } catch (err: any) {
       console.error('Error loading orders:', err);
-      setError('Failed to load orders');
+      setError(t('orders.error.load'));
     } finally {
       setLoading(false);
     }
@@ -42,19 +44,19 @@ export default function Orders() {
       ));
     } catch (err) {
       console.error('Error updating order:', err);
-      alert('Failed to update order status');
+      alert(t('orders.error.update'));
     }
   };
 
   const handleDeleteOrder = async (orderId: number) => {
-    if (!confirm('Are you sure you want to delete this order?')) return;
+    if (!confirm(t('orders.delete.confirm'))) return;
     
     try {
       await deleteOrder(orderId);
       setOrders(orders.filter(order => order.id !== orderId));
     } catch (err) {
       console.error('Error deleting order:', err);
-      alert('Failed to delete order');
+      alert(t('orders.error.delete'));
     }
   };
 
@@ -92,7 +94,7 @@ export default function Orders() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Loader className="w-12 h-12 animate-spin text-green-600 mb-4" />
-        <p className="text-gray-600 font-medium">Loading orders...</p>
+        <p className="text-gray-600 font-medium">{t('orders.loading')}</p>
       </div>
     );
   }
@@ -101,16 +103,16 @@ export default function Orders() {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-linear-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-lg">
-        <h2 className="text-3xl font-bold mb-2">Orders Management</h2>
-        <p className="text-green-50">Track and manage all customer orders</p>
+        <h2 className="text-3xl font-bold mb-2">{t('orders.title')}</h2>
+        <p className="text-green-50">{t('orders.subtitle')}</p>
       </div>
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center gap-4">
-          <span className="text-sm font-semibold text-gray-700">Filter by status:</span>
+          <span className="text-sm font-semibold text-gray-700">{t('orders.filter.label')}</span>
           <div className="flex gap-2">
-            {['all', 'pending', 'completed', 'cancelled'].map(status => (
+                {['all', 'pending', 'completed', 'cancelled'].map(status => (
               <button
                 key={status}
                 onClick={() => setFilter(status)}
@@ -122,7 +124,7 @@ export default function Orders() {
               >
                 {status.charAt(0).toUpperCase() + status.slice(1)}
               </button>
-            ))}
+                ))}
           </div>
         </div>
       </div>
@@ -139,9 +141,9 @@ export default function Orders() {
       {filteredOrders.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-gray-900 mb-2">No Orders Found</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">{t('orders.empty.title')}</h3>
           <p className="text-gray-600">
-            {filter === 'all' ? 'No orders have been placed yet.' : `No ${filter} orders found.`}
+            {filter === 'all' ? t('orders.empty.all') : t('orders.empty.filtered').replace('{status}', t(`orders.status.${filter}`))}
           </p>
         </div>
       ) : (
@@ -151,25 +153,25 @@ export default function Orders() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Order ID
+                    {t('orders.table.order_id')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Customer
+                    {t('orders.table.customer')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Phone
+                    {t('orders.table.phone')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Total Amount
+                    {t('orders.table.total')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Status
+                    {t('orders.table.status')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Date
+                    {t('orders.table.date')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Actions
+                    {t('orders.table.actions')}
                   </th>
                 </tr>
               </thead>
@@ -194,7 +196,7 @@ export default function Orders() {
                       <div className="flex items-center gap-2">
                         {getStatusIcon(order.status)}
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
-                          {order.status}
+                          {t(`orders.status.${order.status.toLowerCase()}`) || order.status}
                         </span>
                       </div>
                     </td>
@@ -210,14 +212,14 @@ export default function Orders() {
                           onChange={(e) => handleStatusChange(order.id, e.target.value)}
                           className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         >
-                          <option value="pending">Pending</option>
-                          <option value="completed">Completed</option>
-                          <option value="cancelled">Cancelled</option>
+                          <option value="pending">{t('orders.status.pending')}</option>
+                          <option value="completed">{t('orders.status.completed')}</option>
+                          <option value="cancelled">{t('orders.status.cancelled')}</option>
                         </select>
                         <button
                           onClick={() => handleDeleteOrder(order.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete order"
+                          title={t('orders.delete.confirm')}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
