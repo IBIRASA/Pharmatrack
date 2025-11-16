@@ -228,7 +228,7 @@ def admin_reject_pharmacy(request, user_id):
         # Do NOT flip user.is_active here; we will rely on profile.is_verified to
         # indicate approval state. Admins can still deactivate accounts via the
         # user model if they want to block access entirely.
-    return Response({'detail': 'Pharmacy rejected'}, status=status.HTTP_200_OK)
+        return Response({'detail': 'Pharmacy rejected'}, status=status.HTTP_200_OK)
     except Exception:
         return Response({'detail': 'Pharmacy profile not found'}, status=status.HTTP_400_BAD_REQUEST)
 

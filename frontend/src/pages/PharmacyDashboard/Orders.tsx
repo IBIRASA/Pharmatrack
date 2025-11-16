@@ -16,17 +16,6 @@ interface Order {
 export default function Orders() {
   const { t } = useTranslation();
   const [localUser, setLocalUser] = useState<any>(null);
-  const [forceShowActions, setForceShowActions] = useState<boolean>(false);
-  const [devOverride, setDevOverride] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('pharmatrack_force_actions');
-      if (stored !== null) return stored === '1';
-      // Default to ON in dev mode so buttons are visible while developing.
-      return (import.meta as any).env?.DEV ? true : false;
-    } catch (e) {
-      return (import.meta as any).env?.DEV ? true : false;
-    }
-  });
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -165,28 +154,8 @@ export default function Orders() {
         <p className="text-green-50">{t('orders.subtitle')}</p>
         <div className="mt-4 flex items-center gap-3">
           <div className="text-sm text-white/90">Logged as: <strong>{localUser?.user_type || localUser?.userType || 'unknown'}</strong></div>
-          <div className="ml-auto flex items-center gap-2">
-            <button onClick={() => setForceShowActions(s => !s)} className="bg-white/10 hover:bg-white/20 px-3 py-1 rounded">
-              {forceShowActions ? 'Hide action debug' : 'Show action buttons (debug)'}
-            </button>
-            <button onClick={() => {
-                const next = !devOverride;
-                try { localStorage.setItem('pharmatrack_force_actions', next ? '1' : '0'); } catch (e) {}
-                setDevOverride(next);
-              }}
-              className={`px-3 py-1 rounded ${devOverride ? 'bg-white text-black' : 'bg-white/10 text-white'} hover:opacity-90 text-sm font-medium`}
-              title="When ON, all action buttons are shown and enabled for testing (dev only)."
-            >
-              {devOverride ? 'Show ALL actions: ON' : 'Show ALL actions: OFF'}
-            </button>
-          </div>
+          <div className="ml-auto" />
         </div>
-          {/* Visible hint when not a pharmacy user to avoid confusion */}
-          {(!forceShowActions && !(localUser?.user_type === 'pharmacy' || localUser?.userType === 'pharmacy')) && (
-            <div className="mt-3 text-sm text-yellow-100 bg-yellow-900/10 border border-yellow-200/10 rounded-md px-3 py-2">
-              You are not signed in as a pharmacy. Action buttons are disabled. Toggle "Show action buttons (debug)" to force-enable buttons for testing.
-            </div>
-          )}
       </div>
 
       {/* Filters */}
@@ -309,8 +278,8 @@ export default function Orders() {
                               try { showError(t('orders.approve.error') || 'Failed to approve order'); } catch {}
                             }
                           }}
-                          disabled={devOverride ? false : (!(canonicalStatus(order.status) === 'pending') || (!forceShowActions && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy'))}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium ${(devOverride || canonicalStatus(order.status) === 'pending') ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-500'} ${((!forceShowActions && !devOverride && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy')) ? 'opacity-60' : ''}`}
+                          disabled={!(canonicalStatus(order.status) === 'pending') || !(localUser?.user_type === 'pharmacy' || localUser?.userType === 'pharmacy')}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium ${canonicalStatus(order.status) === 'pending' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-500'} ${(!(canonicalStatus(order.status) === 'pending') || !(localUser?.user_type === 'pharmacy' || localUser?.userType === 'pharmacy')) ? 'opacity-60' : ''}`}
                           title={t('orders.approve')}
                         >
                           {t('orders.approve') || 'Approve'}
@@ -329,8 +298,8 @@ export default function Orders() {
                               try { showError(t('orders.ship.error') || 'Failed to mark shipped'); } catch {}
                             }
                           }}
-                          disabled={devOverride ? false : (!(['approved','accepted'].includes(canonicalStatus(order.status))) || (!forceShowActions && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy'))}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium ${(devOverride || ['approved','accepted'].includes(canonicalStatus(order.status)) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500')} ${((!forceShowActions && !devOverride && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy')) ? 'opacity-60' : ''}`}
+                          disabled={!(['approved','accepted'].includes(canonicalStatus(order.status))) || !(localUser?.user_type === 'pharmacy' || localUser?.userType === 'pharmacy')}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium ${['approved','accepted'].includes(canonicalStatus(order.status)) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'} ${(!(['approved','accepted'].includes(canonicalStatus(order.status))) || !(localUser?.user_type === 'pharmacy' || localUser?.userType === 'pharmacy')) ? 'opacity-60' : ''}`}
                           title={t('orders.ship')}
                         >
                           {t('orders.ship') || 'Ship'}
@@ -351,8 +320,8 @@ export default function Orders() {
               try { showError(serverMsg || t('orders.complete.error') || 'Failed to mark completed'); } catch {}
                             }
                           }}
-                          disabled={devOverride ? false : (!(['shipped','approved'].includes(canonicalStatus(order.status))) || (!forceShowActions && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy'))}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium ${(devOverride || ['shipped','approved'].includes(canonicalStatus(order.status)) ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500')} ${((!forceShowActions && !devOverride && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy')) ? 'opacity-60' : ''}`}
+                          disabled={!(['shipped','approved'].includes(canonicalStatus(order.status))) || !(localUser?.user_type === 'pharmacy' || localUser?.userType === 'pharmacy')}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium ${['shipped','approved'].includes(canonicalStatus(order.status)) ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500'} ${(!(['shipped','approved'].includes(canonicalStatus(order.status))) || !(localUser?.user_type === 'pharmacy' || localUser?.userType === 'pharmacy')) ? 'opacity-60' : ''}`}
                           title={t('orders.complete')}
                         >
                           {t('orders.complete') || 'Complete'}
@@ -371,8 +340,8 @@ export default function Orders() {
                               try { showError(t('orders.reject.error') || 'Failed to reject order'); } catch {}
                             }
                           }}
-                          disabled={devOverride ? false : (!( ['pending','approved'].includes(canonicalStatus(order.status))) || (!forceShowActions && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy'))}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium ${(devOverride || ['pending','approved'].includes(canonicalStatus(order.status)) ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-500')} ${((!forceShowActions && !devOverride && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy')) ? 'opacity-60' : ''}`}
+                          disabled={!( ['pending','approved'].includes(canonicalStatus(order.status))) || !(localUser?.user_type === 'pharmacy' || localUser?.userType === 'pharmacy')}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium ${['pending','approved'].includes(canonicalStatus(order.status)) ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-500'} ${(!( ['pending','approved'].includes(canonicalStatus(order.status))) || !(localUser?.user_type === 'pharmacy' || localUser?.userType === 'pharmacy')) ? 'opacity-60' : ''}`}
                           title={t('orders.reject')}
                         >
                           {t('orders.reject') || 'Reject'}
