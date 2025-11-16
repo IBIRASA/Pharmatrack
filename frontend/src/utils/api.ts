@@ -43,12 +43,25 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+    const status = error.response?.status;
+    const respData = error.response?.data;
+    const requestUrl = error.config?.url || '';
+
+    // For most requests: on 401 clear auth and redirect to login.
+    // But do not force-redirect when the client is calling the auth endpoints
+    // themselves (login/register) so the UI can display a meaningful message.
+    if (status === 401 && !(requestUrl?.includes('/users/login') || requestUrl?.includes('/users/register'))) {
+      try {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      } catch (e) {
+        // ignore
+      }
       window.location.href = '/login';
     }
-    return Promise.reject(error.response?.data || { detail: 'Network error' });
+
+    // Normalize the rejection payload so callers can inspect status and data
+    return Promise.reject({ status, data: respData, message: error.message || 'Network error' });
   }
 );
 
