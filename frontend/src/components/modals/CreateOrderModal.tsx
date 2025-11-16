@@ -108,8 +108,8 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onClose, medi
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="px-6 py-4 border-b flex items-center justify-between sticky top-0 bg-white">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="px-6 py-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
           <div className="flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-green-600" />
             <h3 className="text-lg font-semibold text-gray-900">{t('orders.place_title') || 'Place Order'}</h3>
@@ -119,7 +119,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onClose, medi
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+  <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 72px)' }}>
           <div className="bg-gray-50 rounded-lg p-4 border">
             <h4 className="font-semibold text-gray-900 text-lg">{medicine.name}</h4>
             <p className="text-sm text-gray-600 mt-2">{t('orders.price_per_unit') || 'Price per unit'}: ${parseFloat(medicine.unit_price || '0').toFixed(2)}</p>
