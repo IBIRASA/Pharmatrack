@@ -266,7 +266,7 @@ export default function MedicineSearch() {
                     <div className="bg-white text-green-600 w-14 h-14 rounded-xl flex items-center justify-center font-bold text-2xl shadow-lg flex-shrink-0">
                       {data.pharmacy_name.charAt(0).toUpperCase()}
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <h3 className="text-2xl font-bold mb-2">{data.pharmacy_name}</h3>
                       <div className="flex items-center gap-2 text-green-50 mb-4">
                         <Mail className="w-4 h-4" />
