@@ -328,7 +328,7 @@ export default function MedicineSearch() {
                           <span className="font-semibold">Manufacturer:</span> {medicine.manufacturer}
                         </p>
 
-                        <div className="flex items-center gap-6">
+                          <div className="flex flex-wrap items-center gap-6">
                           <div className="flex items-center gap-2">
                             <div className="bg-green-100 p-2 rounded-lg">
                               <Package className="w-5 h-5 text-green-600" />
@@ -349,7 +349,7 @@ export default function MedicineSearch() {
                               </p>
                             </div>
                           </div>
-                          <div className="ml-auto flex items-center gap-2">
+                          <div className="ml-auto flex items-center gap-2 flex-shrink-0">
                             {/* Order button: always visible when in-stock. Click handler will verify user/server and open modal or redirect to login. */}
                             {Number(medicine.stock_quantity) > 0 ? (
                               <button
@@ -386,7 +386,7 @@ export default function MedicineSearch() {
                                     window.location.href = '/login';
                                   }
                                 }}
-                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold text-sm shadow-sm"
+                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold text-sm shadow-sm min-w-max"
                               >
                                 Order
                               </button>
