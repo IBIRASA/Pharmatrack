@@ -4,6 +4,7 @@ import { registerUser } from "../utils/api";
 import { UserPlus, Mail, Lock, User, Phone, MapPin, AlertCircle,Hospital } from "lucide-react";
 import logo from "../assets/logo.png";
 import { useTranslation } from '../i18n';
+import { showSuccess, showError } from '../utils/notifications';
 export default function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -14,9 +15,12 @@ export default function Register() {
     name: "",
     phone: "",
     address: "",
+    latitude: undefined as number | undefined,
+    longitude: undefined as number | undefined,
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [locating, setLocating] = useState(false);
   const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,13 +34,74 @@ export default function Register() {
 
     setLoading(true);
     try {
-      await registerUser(formData);
+      // send only relevant fields to API
+      const payload: any = {
+        email: formData.email,
+        password: formData.password,
+        password_confirm: formData.password_confirm,
+        user_type: formData.user_type,
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+      };
+      if (formData.latitude != null && formData.longitude != null) {
+        payload.latitude = formData.latitude;
+        payload.longitude = formData.longitude;
+      }
+
+      const resp = await registerUser(payload);
+      try {
+        const message = resp?.message || 'Registration successful. Please sign in.';
+        showSuccess(message);
+      } catch {}
+      // If pharmacy registration requires approval, still navigate to login but show server message
       navigate("/login", { replace: true });
     } catch (err: any) {
-      setError(err?.detail || t('auth.register.failed'));
+      const msg = err?.detail || t('auth.register.failed');
+      setError(msg);
+      try { showError(msg); } catch {}
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUseLocation = () => {
+    if (!navigator.geolocation) {
+      setError(t('auth.register.geolocation_unsupported') || 'Geolocation is not supported by your browser');
+      return;
+    }
+
+    setError('');
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        setFormData({ ...formData, latitude: lat, longitude: lon });
+
+        // Try a light reverse-geocode to fill address for convenience (non-blocking)
+        try {
+          const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`,
+            { headers: { 'User-Agent': 'Pharmatrack/1.0' } }
+          );
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data?.display_name) {
+              setFormData((fd) => ({ ...fd, address: data.display_name }));
+            }
+          }
+        } catch (e) {
+          // ignore reverse geocode errors
+        }
+
+        setLocating(false);
+      },
+      (_err) => {
+          setLocating(false);
+          setError(t('auth.register.location_error') || 'Could not get your location');
+        },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   return (
@@ -206,6 +271,25 @@ export default function Register() {
                   className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 transition-all"
                   placeholder={t('auth.register.placeholder.address')}
                 />
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleUseLocation}
+                  disabled={locating || loading}
+                  className="inline-flex items-center gap-2 px-3 py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg text-sm"
+                >
+                  {locating ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-700" />
+                  ) : (
+                    <MapPin className="w-4 h-4" />
+                  )}
+                  {locating ? 'Locating...' : 'Use my current location'}
+                </button>
+
+                {formData.latitude != null && formData.longitude != null && (
+                  <div className="text-sm text-gray-600">Lat: {formData.latitude.toFixed(6)}, Lon: {formData.longitude.toFixed(6)}</div>
+                )}
               </div>
             </div>
           )}

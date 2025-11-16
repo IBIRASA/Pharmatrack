@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+// React import not required with the new JSX transform
 import { useAuth } from "../../context/AuthContext";
 import { LogOut, Menu } from "lucide-react";
 import { useTranslation } from "../../i18n";
@@ -9,9 +10,11 @@ import Orders from "./Orders";
 import Customers from "./Customers";
 import SalesReport from "./SalesReport";
 import PharmacySettings from "./PharmacySettings";
+// small transient toasts removed; use PageBanner for messages
 
 export default function PharmacyDashboard() {
   const { user, logout } = useAuth();
+
   const { t } = useTranslation();
 
   const handleLogout = () => {
@@ -87,6 +90,7 @@ export default function PharmacyDashboard() {
               <Route path="settings" element={<PharmacySettings />} />
             </Routes>
           </div>
+          {/* small floating toasts removed; messages are shown via PageBanner */}
         </main>
       </div>
     </div>

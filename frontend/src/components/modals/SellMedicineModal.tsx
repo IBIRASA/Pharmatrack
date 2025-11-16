@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2, ShoppingCart } from 'lucide-react';
 import { sellMedicine } from '../../utils/api';
+import { showError } from '../../utils/notifications';
 import { useTranslation } from '../../i18n';
 
 interface Medicine {
@@ -39,7 +40,7 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
   const [error, setError] = useState('');
   const { t } = useTranslation();
 
-  // Reset form when modal opens/closes or medicine changes
+
   useEffect(() => {
     if (open && medicine) {
       setQuantity(1);
@@ -86,8 +87,8 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
     } catch (error: any) {
       console.error('Error selling medicine:', error);
       const msg = error?.detail || error?.message || JSON.stringify(error);
-      // show translated failure message (fall back to English)
-      alert(`${t('sales.failed') || 'Sale failed'}: ${msg}`);
+ 
+  try { showError(`${t('sales.failed') || 'Sale failed'}: ${msg}`); } catch {}
     } finally {
       setLoading(false);
     }

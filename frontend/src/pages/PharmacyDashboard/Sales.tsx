@@ -9,7 +9,8 @@ import {
   Loader as LoaderIcon,
   CheckCircle,
 } from 'lucide-react';
-import { getMedicines, createOrder, updateMedicine } from '../../utils/api';
+import { getMedicines, sellMedicineEnhanced } from '../../utils/api';
+import { showSuccess, showError, showInfo } from '../../utils/notifications';
 
 interface Medicine {
   id: number;
@@ -33,7 +34,7 @@ export default function Sales() {
   const [loading, setLoading] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [saleCompleted, setSaleCompleted] = useState(false);
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
 
   useEffect(() => {
@@ -70,7 +71,7 @@ export default function Sales() {
 
     if (newQty < 1) return;
     if (newQty > medicine.stock_quantity) {
-      alert(t('sales.only_x_available').replace('{count}', String(medicine.stock_quantity)));
+      try { showInfo(t('sales.only_x_available').replace('{count}', String(medicine.stock_quantity))); } catch {}
       return;
     }
 
@@ -84,7 +85,7 @@ export default function Sales() {
     if (existing) {
       const newQty = existing.quantity + qtyToAdd;
       if (newQty > medicine.stock_quantity) {
-        alert(t('sales.not_enough_stock'));
+        try { showInfo(t('sales.not_enough_stock')); } catch {}
         return;
       }
       setCart(
@@ -120,7 +121,7 @@ export default function Sales() {
             const newQty = item.quantity + delta;
             if (newQty <= 0) return null;
             if (newQty > item.stock_quantity) {
-              alert('Not enough stock');
+              try { showInfo('Not enough stock'); } catch {}
               return item;
             }
             return {
@@ -143,42 +144,42 @@ export default function Sales() {
 
   const handleCompleteSale = async () => {
     if (cart.length === 0) {
-      alert(t('sales.cart.empty'));
+      try { showInfo(t('sales.cart.empty')); } catch {}
       return;
     }
     if (!customerName.trim()) {
-      alert(t('sales.enter_customer_name'));
+      try { showInfo(t('sales.enter_customer_name')); } catch {}
       return;
     }
 
     setLoading(true);
     try {
-      // Create order
-      await createOrder({
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        total_amount: totalAmount,
-        status: 'completed',
-      });
-
-      // Update stock for each item
+      // For in-person sales, call the sell API per medicine so Sale records are created
       for (const item of cart) {
-        await updateMedicine(item.id, {
-          stock_quantity: item.stock_quantity - item.quantity,
+        await sellMedicineEnhanced({
+          medicine_id: item.id,
+          quantity: item.quantity,
+          customer_name: customerName,
+          customer_phone: customerPhone,
+          total_price: item.subtotal
         });
       }
 
-      // Reset
-      setCart([]);
-      setCustomerName('');
-      setCustomerPhone('');
-      setShowSuccess(true);
-      loadMedicines();
-
-      setTimeout(() => setShowSuccess(false), 3000);
+  // Refresh UI
+  setCart([]);
+  setCustomerName('');
+  setCustomerPhone('');
+  setSaleCompleted(true);
+  try { showSuccess(t('sales.success') || 'Sale completed successfully!'); } catch {}
+  await loadMedicines();
+    // notify other parts of the app (dashboard, customers list, reports) to refresh
+    try {
+      window.dispatchEvent(new Event('pharmatrack:sale:created'));
+    } catch (e) {}
+  setTimeout(() => setSaleCompleted(false), 3000);
     } catch (error) {
       console.error('Sale error:', error);
-      alert(t('sales.failed'));
+      try { showError(t('sales.failed')); } catch {}
     } finally {
       setLoading(false);
     }
@@ -191,7 +192,7 @@ export default function Sales() {
         <p className="text-gray-600 mt-1">{t('sales.subtitle')}</p>
       </div>
 
-      {showSuccess && (
+      {saleCompleted && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
           <CheckCircle className="w-6 h-6 text-green-600" />
           <span className="text-green-700 font-medium">Sale completed successfully!</span>

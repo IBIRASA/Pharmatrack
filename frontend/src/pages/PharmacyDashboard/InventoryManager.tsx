@@ -4,6 +4,7 @@ import { Edit, Trash2, ChevronLeft, ChevronRight, Search, Plus } from 'lucide-re
 import SellMedicineModal from '../../components/modals/SellMedicineModal';
 import AddMedicineModal from '../../components/modals/AddMedicineModal';
 import { getMedicines, updateMedicine, deleteMedicine } from '../../utils/api';
+import { showError } from '../../utils/notifications';
 import EditMedicineModal from '../../components/modals/EditMedicineModal';
 
 interface Medicine {
@@ -155,9 +156,9 @@ export default function InventoryManager() {
       await loadMedicines();
     } catch (err: any) {
       console.error('Delete failed, reverting local change', err);
-      setMedicines(prevMeds);
-      setFiltered(prevMeds);
-      alert(t('inventory.delete.failed').replace('{msg}', err instanceof Error ? err.message : String(err)));
+  setMedicines(prevMeds);
+  setFiltered(prevMeds);
+  try { showError(t('inventory.delete.failed').replace('{msg}', err instanceof Error ? err.message : String(err))); } catch {}
     }
   };
 

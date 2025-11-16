@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 
 User = settings.AUTH_USER_MODEL
+ 
 
 class Pharmacy(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='pharmacy')
@@ -59,13 +60,13 @@ class Medicine(models.Model):
         if self.stock_quantity < qty:
             raise ValueError("Insufficient stock")
         self.stock_quantity = self.stock_quantity - qty
-        self.updated_at = models.DateTimeField(auto_now=True)
-        self.save(update_fields=["stock_quantity", "updated_at"])
+        self.save(update_fields=["stock_quantity"])
 
 
 class Sale(models.Model):
     pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, related_name='sales')
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name='sales')
     quantity = models.IntegerField()
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     sale_date = models.DateTimeField(auto_now_add=True)
@@ -76,14 +77,20 @@ class Sale(models.Model):
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     ]
-    
+
     pharmacy = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
-    customer_name = models.CharField(max_length=200)
+    patient = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders_as_patient')
+    customer_name = models.CharField(max_length=200, blank=True)
     customer_phone = models.CharField(max_length=20, blank=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    stock_reserved = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -103,3 +110,20 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.medicine.name} x {self.quantity}"
+
+
+class Notification(models.Model):
+    """Simple in-app notification for users."""
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    actor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='actor_notifications')
+    verb = models.CharField(max_length=200)
+    message = models.TextField(blank=True)
+    data = models.JSONField(null=True, blank=True)
+    read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification to {self.recipient} - {self.verb}"

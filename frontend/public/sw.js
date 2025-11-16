@@ -33,6 +33,21 @@ self.addEventListener('fetch', (event) => {
   // only handle 'GET' requests
   if (event.request.method !== 'GET') return;
 
+  // Skip non-http(s) schemes (chrome-extension, moz-extension, data, etc.) which
+  // cannot be cached by the Cache API and will throw when using cache.put.
+  try {
+    const reqUrl = new URL(event.request.url);
+    if (reqUrl.protocol !== 'http:' && reqUrl.protocol !== 'https:') {
+      // Just forward the request to network and don't attempt to cache
+      event.respondWith(fetch(event.request));
+      return;
+    }
+  } catch (e) {
+    // If URL parsing fails for any reason, bail out and do a network fetch.
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
@@ -45,7 +60,8 @@ self.addEventListener('fetch', (event) => {
           }
 
           const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          // Be defensive: ignore cache.put errors (some browsers may reject certain requests)
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone).catch(() => {}));
           return response;
         })
         .catch(() => {

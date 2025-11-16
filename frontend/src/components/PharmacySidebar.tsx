@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 import { useTranslation } from '../i18n';
 
 type IconType = React.ComponentType<{ className?: string }>;
@@ -65,6 +66,9 @@ export default function PharmacySidebar() {
               <ChevronLeft className="w-5 h-5 text-gray-600" />
             )}
           </button>
+          <div className="mr-3">
+            <NotificationBell />
+          </div>
         </div>
 
         {/* Sidebar Menu */}

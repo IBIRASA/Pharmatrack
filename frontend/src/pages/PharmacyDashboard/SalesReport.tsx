@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getSalesReports, getMockSalesHistory, getDashboardStats } from "../../utils/api";
+import { getSalesReports, getMockSalesHistory, getDashboardStats, mockAPI } from "../../utils/api";
 import { DollarSign, TrendingUp, Calendar, Loader, BarChart3, Users, Package } from "lucide-react";
 import { useTranslation } from '../../i18n';
 
@@ -33,22 +33,79 @@ export default function SalesReport() {
     loadData();
   }, [period]);
 
+  useEffect(() => {
+    const onSale = () => loadData();
+    window.addEventListener('pharmatrack:sale:created', onSale);
+    return () => window.removeEventListener('pharmatrack:sale:created', onSale);
+  }, []);
+
   const loadData = async () => {
     try {
       setLoading(true);
-      const [reportData, statsData, salesData] = await Promise.all([
+      const [reportData, statsData] = await Promise.all([
         getSalesReports(period),
         getDashboardStats(),
-        getMockSalesHistory(1, 10)
       ]);
+
+      // Prefer backend recent sales (scoped to authenticated pharmacy); fall back to mock storage
+      let recent = [];
+      try {
+        const resp = await (await import('../../utils/api')).getSalesData();
+        recent = resp.results || resp || [];
+      } catch (e) {
+        // Only use the mock fallback when client is offline. If online and backend failed,
+        // surface an empty recent list so the UI shows no data rather than unrelated mock data.
+        if (typeof window !== 'undefined' && 'navigator' in window && !window.navigator.onLine) {
+          try {
+            const mock = await getMockSalesHistory(1, 10);
+            recent = mock.results;
+          } catch (e2) {
+            recent = [];
+          }
+        } else {
+          recent = [];
+        }
+      }
 
       setReports(reportData);
       setStats(statsData);
-      setRecentSales(salesData.results);
+      setRecentSales(recent);
     } catch (error) {
       console.error("Error loading sales data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // If running in dev and there is no data, auto-generate sample sales to make charts visible
+  useEffect(() => {
+    (async () => {
+      if (!(import.meta as any).env?.DEV) return;
+      try {
+        // load current mock sales quickly
+        const cur = await getMockSalesHistory(1, 5);
+        const hasSales = Array.isArray(cur.results) && cur.results.length > 0;
+        if (!hasSales) {
+          // generate a modest number so charts and recent transactions show
+          mockAPI.generateSampleSales(20);
+          // reload data
+          await loadData();
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, []);
+
+  // Dev helper: generate sample mock sales in localStorage to populate recent transactions
+  const generateSampleSales = () => {
+    try {
+      const generated = mockAPI.generateSampleSales(20);
+      console.log('Generated sample sales:', generated.length);
+      // reload data from localStorage-backed mocks
+      loadData();
+    } catch (e) {
+      console.error('Failed to generate sample sales', e);
     }
   };
 
@@ -88,6 +145,14 @@ export default function SalesReport() {
             <option value="weekly">{t('sales.period.weekly')}</option>
             <option value="monthly">{t('sales.period.monthly')}</option>
           </select>
+          { (import.meta as any).env?.DEV && (
+            <button
+              onClick={generateSampleSales}
+              className="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-sm"
+            >
+              Generate sample sales
+            </button>
+          ) }
         </div>
       </div>
 

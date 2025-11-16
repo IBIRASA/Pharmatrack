@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { Lock, AlertCircle, LogIn, Mail } from "lucide-react";
 import logo from "../assets/logo.png"; 
 import { useTranslation } from '../i18n';
+import { showSuccess, showError } from '../utils/notifications';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -34,10 +35,17 @@ export default function Login() {
       
       // Navigate
       navigate(dest, { replace: true });
+      try { showSuccess('Signed in successfully'); } catch {}
       
     } catch (err: any) {
   console.error('Login error:', err); // Debug log
-  setError(err?.detail || t('auth.login.failed'));
+  // Normalize the message we show to the user and the toast.
+  // Some backends return { detail: '...' } or { message: '...' } or a nested shape.
+  const rawMsg = err?.detail || err?.message || (typeof err === 'string' ? err : '');
+  const msg = rawMsg || t('auth.login.failed') || 'Login failed. Check your credentials and try again.';
+  // show inline error and toast (ensure toast always receives a non-empty string)
+  setError(msg);
+  try { showError(msg); } catch (e) { console.error('showError failed', e); }
     } finally {
       setLoading(false);
     }
