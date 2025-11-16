@@ -38,14 +38,30 @@ export default function Login() {
       try { showSuccess('Signed in successfully'); } catch {}
       
     } catch (err: any) {
-  console.error('Login error:', err); // Debug log
-  // Normalize the message we show to the user and the toast.
-  // Some backends return { detail: '...' } or { message: '...' } or a nested shape.
-  const rawMsg = err?.detail || err?.message || (typeof err === 'string' ? err : '');
-  const msg = rawMsg || t('auth.login.failed') || 'Login failed. Check your credentials and try again.';
-  // show inline error and toast (ensure toast always receives a non-empty string)
-  setError(msg);
-  try { showError(msg); } catch (e) { console.error('showError failed', e); }
+      console.error('Login error:', err); // Debug log
+
+      // err is expected to be an object like { status, data, message }
+      const status = err?.status;
+      const backend = err?.data || {};
+      const backendMsg = backend?.detail || backend?.message;
+
+      let msg = t('auth.login.failed') || 'Login failed. Check your credentials and try again.';
+
+      if (status === 401) {
+        msg = 'Incorrect email or password.';
+      } else if (status === 403) {
+        // Use server-provided message for pending/blocked accounts when available
+        msg = backendMsg || 'Your account is not allowed to sign in. Please contact an administrator.';
+      } else if (!navigator.onLine) {
+        msg = 'Network error — please check your internet connection.';
+      } else if (backendMsg) {
+        msg = backendMsg;
+      } else if (err?.message) {
+        msg = err.message;
+      }
+
+      setError(msg);
+      try { showError(msg); } catch (e) { console.error('showError failed', e); }
     } finally {
       setLoading(false);
     }
