@@ -10,6 +10,8 @@ from .serializers import UserSerializer, RegisterSerializer
 from .models import User
 from rest_framework.permissions import IsAdminUser
 from django.shortcuts import get_object_or_404
+import os
+import secrets
 
 User = get_user_model()
 
@@ -206,3 +208,56 @@ def admin_reject_pharmacy(request, user_id):
         return Response({'detail': 'Pharmacy rejected and deactivated'}, status=status.HTTP_200_OK)
     except Exception:
         return Response({'detail': 'Pharmacy profile not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_superuser_via_secret(request):
+    """Create a Django superuser via a one-time secret stored in the environment.
+
+    Usage: set environment variable ADMIN_CREATION_SECRET on the deployed host to a strong value.
+    Then POST to this endpoint with header X-ADMIN-SECRET set to that value and JSON body:
+      { "email": "divinebirasaishimwe.com", "username": "divine", "password": "123457890" }
+
+    If password is omitted, a random strong password is generated and returned in the response.
+    IMPORTANT: remove this endpoint or unset ADMIN_CREATION_SECRET after use.
+    """
+    secret_env = os.environ.get('ADMIN_CREATION_SECRET')
+    header_secret = request.headers.get('X-ADMIN-SECRET')
+
+    if not secret_env:
+        return Response({'detail': 'Admin creation is not enabled on this instance'}, status=status.HTTP_403_FORBIDDEN)
+
+    if not header_secret or header_secret != secret_env:
+        return Response({'detail': 'Invalid or missing admin creation secret'}, status=status.HTTP_403_FORBIDDEN)
+
+    data = request.data or {}
+    email = data.get('email')
+    username = data.get('username') or (email.split('@')[0] if email else None)
+    password = data.get('password')
+
+    if not email:
+        return Response({'detail': 'email is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    UserModel = get_user_model()
+    if UserModel.objects.filter(email__iexact=email).exists():
+        return Response({'detail': 'A user with this email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not password:
+        # generate a strong temporary password
+        password = secrets.token_urlsafe(16)
+
+    try:
+        # Use create_superuser if available
+        try:
+            user = UserModel.objects.create_superuser(username=username, email=email, password=password)
+        except TypeError:
+            # fallback if create_superuser signature differs
+            user = UserModel.objects.create_user(username=username, email=email, password=password)
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+    except Exception as e:
+        return Response({'detail': 'Failed to create superuser', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    return Response({'detail': 'Superuser created', 'email': email, 'username': username, 'password': password})
