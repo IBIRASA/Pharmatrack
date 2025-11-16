@@ -52,13 +52,12 @@ def login_user(request):
     except Exception:
         user_obj = None
 
-    # If a pharmacy user exists but is not active/verified, return a clear message instead
+    # If a pharmacy user exists but is not verified, return a clear message instead
     try:
         if user_obj and getattr(user_obj, 'user_type', '') == 'pharmacy':
-            # prefer the is_active flag first (set at registration until admin approves)
-            if not getattr(user_obj, 'is_active', True):
-                return Response({'detail': 'Account pending approval. Please wait for an administrator to approve your pharmacy account.'}, status=status.HTTP_403_FORBIDDEN)
-            # fallback: check pharmacy_profile.is_verified where available
+            # Check only the pharmacy_profile.is_verified flag. We will rely on
+            # the profile verification state (not user.is_active/is_staff) to
+            # gate sign-in for pharmacy users.
             try:
                 profile = getattr(user_obj, 'pharmacy_profile', None)
                 if profile and not getattr(profile, 'is_verified', True):
@@ -89,7 +88,7 @@ def login_user(request):
         # Block login for pharmacies that are not verified by admin
         try:
             if user.user_type == 'pharmacy':
-                # Access pharmacy_profile safely
+                # Access pharmacy_profile safely and reject if not verified
                 if hasattr(user, 'pharmacy_profile') and not user.pharmacy_profile.is_verified:
                     return Response({'detail': 'Account pending approval. Please contact an administrator.'}, status=status.HTTP_403_FORBIDDEN)
         except Exception:
@@ -210,8 +209,8 @@ def admin_approve_pharmacy(request, user_id):
         profile = user.pharmacy_profile
         profile.is_verified = True
         profile.save()
-        user.is_active = True
-        user.save()
+        # Do NOT modify user.is_active or user.is_staff here; approval is based
+        # solely on the pharmacy profile's verified flag.
         return Response({'detail': 'Pharmacy approved'}, status=status.HTTP_200_OK)
     except Exception:
         return Response({'detail': 'Pharmacy profile not found'}, status=status.HTTP_400_BAD_REQUEST)
@@ -226,9 +225,10 @@ def admin_reject_pharmacy(request, user_id):
         profile = user.pharmacy_profile
         profile.is_verified = False
         profile.save()
-        user.is_active = False
-        user.save()
-        return Response({'detail': 'Pharmacy rejected and deactivated'}, status=status.HTTP_200_OK)
+        # Do NOT flip user.is_active here; we will rely on profile.is_verified to
+        # indicate approval state. Admins can still deactivate accounts via the
+        # user model if they want to block access entirely.
+    return Response({'detail': 'Pharmacy rejected'}, status=status.HTTP_200_OK)
     except Exception:
         return Response({'detail': 'Pharmacy profile not found'}, status=status.HTTP_400_BAD_REQUEST)
 
