@@ -88,7 +88,7 @@ const EditMedicineModal: React.FC<EditMedicineModalProps> = ({ open, onClose, me
 
   return (
     <div className="fixed inset-0  bg-black/30 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-y-auto">
+  <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-4 border-b flex items-center justify-between sticky top-0 bg-white">
           <h3 className="text-lg font-semibold">{t('modals.edit_medicine.title')}</h3>
           <button onClick={onClose} disabled={loading} className="text-gray-600 hover:text-gray-800" aria-label={t('modals.edit_medicine.close') ?? undefined}>
