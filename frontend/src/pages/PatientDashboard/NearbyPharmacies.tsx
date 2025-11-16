@@ -1,5 +1,5 @@
 import{ useState, useEffect } from 'react';
-import { Loader, AlertCircle, MapPin, Navigation, ExternalLink, Clock } from 'lucide-react';
+import { Loader, AlertCircle, MapPin, Navigation, Clock } from 'lucide-react';
 import { useTranslation } from '../../i18n';
 
 interface PharmacyItem {
@@ -165,10 +165,7 @@ export default function NearbyPharmacies() {
   };
 
   // View on Google Maps
-  const viewOnGoogleMaps = (pharmacy: PharmacyItem) => {
-    const url = `https://www.google.com/maps/search/?api=1&query=${pharmacy.lat},${pharmacy.lon}&query_place_id=${pharmacy.name}`;
-    window.open(url, '_blank');
-  };
+  // (view on map removed — keep only directions)
 
   // Automatically get location when component mounts
   useEffect(() => {
@@ -300,7 +297,7 @@ export default function NearbyPharmacies() {
               onClick={() => window.open('https://www.google.com/maps/search/pharmacy/', '_blank')}
               className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
             >
-              <ExternalLink size={14} />
+              <MapPin size={14} />
               {t('patient.nearby.search_google_maps')}
             </button>
           </div>
@@ -371,13 +368,7 @@ export default function NearbyPharmacies() {
                     <Navigation size={16} />
                     {t('patient.nearby.directions')}
                   </button>
-                  <button
-                    onClick={() => viewOnGoogleMaps(pharmacy)}
-                    className="flex items-center gap-2 bg-gray-400 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors whitespace-nowrap"
-                  >
-                    <ExternalLink size={16} />
-                    {t('patient.nearby.view_map')}
-                  </button>
+                  {/* removed: view on map button - keep only directions to reduce UI clutter */}
                 </div>
               </div>
             </div>
@@ -401,7 +392,7 @@ export default function NearbyPharmacies() {
               onClick={() => window.open('https://www.google.com/maps/search/pharmacy/', '_blank')}
               className="flex items-center gap-2 bg-green-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition-colors"
             >
-              <ExternalLink size={16} />
+              <MapPin size={16} />
               {t('patient.nearby.search_google_maps')}
             </button>
           </div>

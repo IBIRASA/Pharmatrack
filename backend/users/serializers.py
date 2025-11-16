@@ -93,13 +93,10 @@ class RegisterSerializer(serializers.Serializer):
             user_type=user_type
         )
 
-        # If pharmacy registers, mark the account inactive until admin approval.
-        if user_type == 'pharmacy':
-            try:
-                user.is_active = False
-                user.save()
-            except Exception:
-                pass
+        # For pharmacy registrations we rely on the Pharmacy.profile.is_verified
+        # flag to gate access. Do not flip `user.is_active` here — admins will
+        # toggle `pharmacy_profile.is_verified` when approving the account.
+        # This avoids mixing staff/admin flags with verification state.
 
         # Create profile based on user type
         if user_type == 'patient':

@@ -52,21 +52,43 @@ def login_user(request):
     except Exception:
         user_obj = None
 
-    # Try authenticating in a safe order:
-    # 1) If user_obj found, use its username
-    # 2) Try using the raw email (in case username == email)
-    # 3) Fallback to None -> invalid credentials
+    # If a pharmacy user exists but is not verified, return a clear message instead
+    try:
+        if user_obj and getattr(user_obj, 'user_type', '') == 'pharmacy':
+            # Check only the pharmacy_profile.is_verified flag. We will rely on
+            # the profile verification state (not user.is_active/is_staff) to
+            # gate sign-in for pharmacy users.
+            try:
+                profile = getattr(user_obj, 'pharmacy_profile', None)
+                if profile and not getattr(profile, 'is_verified', True):
+                    return Response({'detail': 'Account pending approval. Please wait for an administrator to approve your pharmacy account.'}, status=status.HTTP_403_FORBIDDEN)
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    # Authenticate: prefer direct password check on the found user object (avoids
+    # issues when AbstractUser.USERNAME_FIELD != 'username' or when username/email
+    # were stored differently). Fall back to Django's authenticate as a secondary
+    # attempt for any configured auth backends.
     user = None
-    if user_obj:
-        user = authenticate(request, username=user_obj.username, password=password)
-    if user is None:
-        user = authenticate(request, username=email, password=password)
+    try:
+        if user_obj and hasattr(user_obj, 'check_password') and user_obj.check_password(password):
+            user = user_obj
+            print(f"login_user: password matched for user_obj email={user_obj.email} id={user_obj.id}")
+        else:
+            # Try authenticate using email (USERNAME_FIELD) as a fallback
+            user = authenticate(request, username=email, password=password)
+            print(f"login_user: authenticate fallback returned: {user}")
+    except Exception as auth_exc:
+        print('login_user: authentication exception', auth_exc)
+        user = None
 
     if user is not None:
         # Block login for pharmacies that are not verified by admin
         try:
             if user.user_type == 'pharmacy':
-                # Access pharmacy_profile safely
+                # Access pharmacy_profile safely and reject if not verified
                 if hasattr(user, 'pharmacy_profile') and not user.pharmacy_profile.is_verified:
                     return Response({'detail': 'Account pending approval. Please contact an administrator.'}, status=status.HTTP_403_FORBIDDEN)
         except Exception:
@@ -90,7 +112,7 @@ def login_user(request):
         }, status=status.HTTP_200_OK)
 
     return Response(
-        {'detail': 'Invalid credentials'},
+        {'detail': 'Incorrect email or password'},
         status=status.HTTP_401_UNAUTHORIZED
     )
 
@@ -187,8 +209,8 @@ def admin_approve_pharmacy(request, user_id):
         profile = user.pharmacy_profile
         profile.is_verified = True
         profile.save()
-        user.is_active = True
-        user.save()
+        # Do NOT modify user.is_active or user.is_staff here; approval is based
+        # solely on the pharmacy profile's verified flag.
         return Response({'detail': 'Pharmacy approved'}, status=status.HTTP_200_OK)
     except Exception:
         return Response({'detail': 'Pharmacy profile not found'}, status=status.HTTP_400_BAD_REQUEST)
@@ -203,9 +225,10 @@ def admin_reject_pharmacy(request, user_id):
         profile = user.pharmacy_profile
         profile.is_verified = False
         profile.save()
-        user.is_active = False
-        user.save()
-        return Response({'detail': 'Pharmacy rejected and deactivated'}, status=status.HTTP_200_OK)
+        # Do NOT flip user.is_active here; we will rely on profile.is_verified to
+        # indicate approval state. Admins can still deactivate accounts via the
+        # user model if they want to block access entirely.
+        return Response({'detail': 'Pharmacy rejected'}, status=status.HTTP_200_OK)
     except Exception:
         return Response({'detail': 'Pharmacy profile not found'}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2, ShoppingCart } from 'lucide-react';
-import { sellMedicine } from '../../utils/api';
+import { sellMedicineEnhanced } from '../../utils/api';
 import { showError } from '../../utils/notifications';
 import { useTranslation } from '../../i18n';
 
@@ -74,7 +74,7 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
 
       console.log('Submitting order data:', orderData);
       
-      const result = await sellMedicine(orderData);
+  const result = await sellMedicineEnhanced(orderData);
       const payload = {
         medicine_id: medicine.id,
         quantity,
