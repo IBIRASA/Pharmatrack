@@ -52,15 +52,38 @@ def login_user(request):
     except Exception:
         user_obj = None
 
-    # Try authenticating in a safe order:
-    # 1) If user_obj found, use its username
-    # 2) Try using the raw email (in case username == email)
-    # 3) Fallback to None -> invalid credentials
+    # If a pharmacy user exists but is not active/verified, return a clear message instead
+    try:
+        if user_obj and getattr(user_obj, 'user_type', '') == 'pharmacy':
+            # prefer the is_active flag first (set at registration until admin approves)
+            if not getattr(user_obj, 'is_active', True):
+                return Response({'detail': 'Account pending approval. Please wait for an administrator to approve your pharmacy account.'}, status=status.HTTP_403_FORBIDDEN)
+            # fallback: check pharmacy_profile.is_verified where available
+            try:
+                profile = getattr(user_obj, 'pharmacy_profile', None)
+                if profile and not getattr(profile, 'is_verified', True):
+                    return Response({'detail': 'Account pending approval. Please wait for an administrator to approve your pharmacy account.'}, status=status.HTTP_403_FORBIDDEN)
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    # Authenticate: prefer direct password check on the found user object (avoids
+    # issues when AbstractUser.USERNAME_FIELD != 'username' or when username/email
+    # were stored differently). Fall back to Django's authenticate as a secondary
+    # attempt for any configured auth backends.
     user = None
-    if user_obj:
-        user = authenticate(request, username=user_obj.username, password=password)
-    if user is None:
-        user = authenticate(request, username=email, password=password)
+    try:
+        if user_obj and hasattr(user_obj, 'check_password') and user_obj.check_password(password):
+            user = user_obj
+            print(f"login_user: password matched for user_obj email={user_obj.email} id={user_obj.id}")
+        else:
+            # Try authenticate using email (USERNAME_FIELD) as a fallback
+            user = authenticate(request, username=email, password=password)
+            print(f"login_user: authenticate fallback returned: {user}")
+    except Exception as auth_exc:
+        print('login_user: authentication exception', auth_exc)
+        user = None
 
     if user is not None:
         # Block login for pharmacies that are not verified by admin
@@ -90,7 +113,7 @@ def login_user(request):
         }, status=status.HTTP_200_OK)
 
     return Response(
-        {'detail': 'Invalid credentials'},
+        {'detail': 'Incorrect email or password'},
         status=status.HTTP_401_UNAUTHORIZED
     )
 
