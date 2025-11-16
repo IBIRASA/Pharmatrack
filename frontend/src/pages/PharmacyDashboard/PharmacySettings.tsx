@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { User, Lock, Save, Bell, Sun, Moon } from "lucide-react";
 import { useTranslation } from "../../i18n";
 import { useTheme } from "../../context/ThemeContext";
+import { updateCurrentUser } from '../../utils/api';
+import { showSuccess, showError, showInfo } from '../../utils/notifications';
 
 export default function PharmacySettings() {
-  const { user } = useAuth();
+  const { user, setAuth } = useAuth();
   const { t } = useTranslation();
   const [profileData, setProfileData] = useState({
     username: user?.name || "",
@@ -13,6 +15,16 @@ export default function PharmacySettings() {
     phone: "",
     address: "",
   });
+
+  // Keep local form state in sync when AuthContext's user updates (after save or login)
+  useEffect(() => {
+    setProfileData({
+      username: user?.name || "",
+      email: user?.email || "",
+      phone: (user as any)?.phone || "",
+      address: (user as any)?.address || "",
+    });
+  }, [user]);
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -29,16 +41,47 @@ export default function PharmacySettings() {
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Profile updated successfully!");
+    // Persist profile changes to the backend and update local auth state
+    (async () => {
+      try {
+        setSaving(true);
+        // build a minimal payload containing only changed fields
+        const payload: any = {};
+        if ((user as any)?.name !== profileData.username) payload.name = profileData.username;
+        if ((user as any)?.phone !== profileData.phone) payload.phone = profileData.phone;
+        if ((user as any)?.address !== profileData.address) payload.address = profileData.address;
+        if ((user as any)?.email !== profileData.email) payload.email = profileData.email;
+
+        if (Object.keys(payload).length === 0) {
+          try { showInfo('No changes to save'); } catch {}
+          setSaving(false);
+          return;
+        }
+
+        const updated = await updateCurrentUser(payload);
+        // merge updated fields into existing user object while preserving token
+        const token = localStorage.getItem('token');
+        const mergedUser = { ...(user as any), ...updated };
+        setAuth({ token: token, user: mergedUser as any });
+  try { showSuccess('Profile updated'); } catch {}
+      } catch (err: any) {
+  console.error('Failed to update profile', err);
+  try { showError(err?.detail || 'Failed to update profile'); } catch {}
+      } finally {
+        setSaving(false);
+      }
+    })();
   };
+
+  const [saving, setSaving] = useState(false);
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("Passwords do not match!");
+      try { showError(t('patient.settings.password_mismatch') || 'Passwords do not match!'); } catch {}
       return;
     }
-    alert("Password changed successfully!");
+    try { showSuccess('Password changed successfully!'); } catch {}
     setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
   };
 
@@ -100,7 +143,9 @@ export default function PharmacySettings() {
           </div>
           <button
             type="submit"
-            className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+            className={`flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 ${saving ? 'opacity-70 cursor-not-allowed' : ''}`}
+            disabled={saving}
+            aria-busy={saving}
           >
             <Save className="w-4 h-4" />
             {t('patient.settings.save_changes')}

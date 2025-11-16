@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { getDashboardStats, getMockSalesHistory, getCustomers,getMedicines } from '../../utils/api';
+import { getDashboardStats, getSalesData, getCustomers, getMedicines, getOrders } from '../../utils/api';
 import { 
   Package, 
   ShoppingCart, 
   AlertTriangle, 
   TrendingUp, 
-  DollarSign,
   Users,
   Loader,
   AlertCircle,
@@ -18,6 +17,7 @@ import { useTranslation } from '../../i18n';
 interface DashboardStats {
   total_revenue: string;
   total_sales: number;
+  total_orders?: number;
   today_sales: number;
   average_order_value: string;
   low_stock_items: number;
@@ -34,6 +34,7 @@ export default function Overview() {
   const [recentSales, setRecentSales] = useState<any[]>([]);
   const [recentCustomers, setRecentCustomers] = useState<any[]>([]);
   const [lowStockCount, setLowStockCount] = useState(0);
+  const [openOrdersCount, setOpenOrdersCount] = useState<number>(0);
   useEffect(() => {
     loadDashboard();
   }, []);
@@ -45,14 +46,48 @@ export default function Overview() {
       
       console.log('Loading dashboard data...');
     
-      const [statsData, salesData, customersData] = await Promise.all([
+      const [
+        statsData,
+        salesData,
+        customersData,
+        ordersData,
+        ordersAll
+      ] = await Promise.all([
         getDashboardStats(),
-        getMockSalesHistory(1, 5),
-        getCustomers()
+        getSalesData({ limit: 5 }),
+        getCustomers(),
+        getOrders({ limit: 10 }),
+        getOrders({ limit: 1000 })
       ]);
 
+      // Map sales and recent shipped/completed orders into a unified recent activity list
+      const mappedSales = (Array.isArray(salesData) ? salesData : (salesData.results || [])).map((s: any) => ({
+        id: s.id,
+        customer_name: s.customer?.name || s.customer_name || 'Customer',
+        medicine_name: s.medicine_name || s.medicine || (s.items && s.items.length ? s.items[0].medicine_name || s.items[0].medicine : ''),
+        total_price: s.total_price || s.total_amount || 0,
+        sale_date: s.sale_date || s.created_at || s.createdAt
+      }));
+
+      const shippedOrders = (ordersData || [])
+        .filter((o: any) => ['shipped', 'completed'].includes(o.status))
+        .map((o: any) => ({
+          id: `order_${o.id}`,
+          customer_name: o.customer_name || (o.patient && (o.patient.name || o.patient.username)) || 'Customer',
+          medicine_name: o.items && o.items.length ? (o.items[0].medicine_name || o.items[0].medicine) : 'Order',
+          total_price: o.total_amount,
+          sale_date: o.created_at
+        }));
+
+      const combined = [...mappedSales, ...shippedOrders].slice(0, 5);
+
+  // Count open orders (statuses that require action)
+  const openStatuses = ['pending', 'approved', 'reserved'];
+  const allOrders = Array.isArray(ordersAll) ? ordersAll : (((ordersAll as any)?.results) || []);
+  const openCount = allOrders.filter((o: any) => openStatuses.includes((o.status || '').toLowerCase())).length;
       setStats(statsData);
-      setRecentSales(salesData.results);
+      setRecentSales(combined);
+  setOpenOrdersCount(openCount);
       setRecentCustomers(customersData.slice(0, 5));
       
       console.log('Dashboard data loaded successfully');
@@ -128,18 +163,16 @@ export default function Overview() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Revenue */}
+        {/* Total Orders (moved to first for visibility) */}
         <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-green-100 p-3 rounded-lg">
-              <DollarSign className="w-6 h-6 text-green-600" />
+            <div className="bg-teal-100 p-3 rounded-lg">
+              <Package className="w-6 h-6 text-teal-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.total_label')}</span>
+            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.orders')}</span>
           </div>
-          <h3 className="text-3xl font-bold text-gray-900 mb-1">
-            ${stats.total_revenue}
-          </h3>
-          <p className="text-sm text-gray-600">{t('dashboard.card.total_revenue')}</p>
+          <h3 className="text-3xl font-bold text-gray-900 mb-1">{stats.total_orders ?? stats.total_sales}</h3>
+          <p className="text-sm text-gray-600">Total Orders</p>
         </div>
 
         {/* Total Sales */}
@@ -148,11 +181,35 @@ export default function Overview() {
             <div className="bg-blue-100 p-3 rounded-lg">
               <ShoppingCart className="w-6 h-6 text-blue-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.all_time')}</span>
+            <span className="text-sm font-medium text-gray-600">All time</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">{stats.total_sales}</h3>
-          <p className="text-sm text-gray-600">{t('dashboard.card.total_sales')}</p>
+          <p className="text-sm text-gray-600">Total Sales</p>
         </div>
+
+        {/* Total Orders */}
+        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-teal-100 p-3 rounded-lg">
+              <Package className="w-6 h-6 text-teal-600" />
+            </div>
+            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.orders')}</span>
+          </div>
+          <h3 className="text-3xl font-bold text-gray-900 mb-1">{stats.total_orders ?? stats.total_sales}</h3>
+          <p className="text-sm text-gray-600">Total Orders</p>
+        </div>
+
+          {/* Open Orders */}
+          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-yellow-100 p-3 rounded-lg">
+                <AlertTriangle className="w-6 h-6 text-yellow-600" />
+              </div>
+              <span className="text-sm font-medium text-gray-600">Open Orders</span>
+            </div>
+            <h3 className="text-3xl font-bold text-gray-900 mb-1">{openOrdersCount}</h3>
+            <p className="text-sm text-gray-600">Orders requiring attention</p>
+          </div>
 
         {/* Today's Sales */}
         <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
@@ -160,10 +217,10 @@ export default function Overview() {
             <div className="bg-purple-100 p-3 rounded-lg">
               <Calendar className="w-6 h-6 text-purple-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.today')}</span>
+            <span className="text-sm font-medium text-gray-600">Today</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">{stats.today_sales}</h3>
-          <p className="text-sm text-gray-600">{t('dashboard.card.today_sales')}</p>
+          <p className="text-sm text-gray-600">Today's Sales</p>
         </div>
 
         {/* Total Customers */}
@@ -172,10 +229,10 @@ export default function Overview() {
             <div className="bg-indigo-100 p-3 rounded-lg">
               <Users className="w-6 h-6 text-indigo-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.unique')}</span>
+            <span className="text-sm font-medium text-gray-600">Customers</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">{stats.total_customers}</h3>
-          <p className="text-sm text-gray-600">{t('dashboard.card.total_customers')}</p>
+          <p className="text-sm text-gray-600">Total Customers</p>
         </div>
 
         {/* Monthly Revenue */}
@@ -184,12 +241,12 @@ export default function Overview() {
             <div className="bg-orange-100 p-3 rounded-lg">
               <BarChart3 className="w-6 h-6 text-orange-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.this_month')}</span>
+            <span className="text-sm font-medium text-gray-600">This month</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">
             ${stats.monthly_revenue}
           </h3>
-          <p className="text-sm text-gray-600">{t('dashboard.card.monthly_revenue')}</p>
+          <p className="text-sm text-gray-600">Monthly Revenue</p>
         </div>
 
         {/* Average Order Value */}
@@ -198,12 +255,12 @@ export default function Overview() {
             <div className="bg-cyan-100 p-3 rounded-lg">
               <TrendingUp className="w-6 h-6 text-cyan-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.average')}</span>
+            <span className="text-sm font-medium text-gray-600">Average</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">
             ${stats.average_order_value}
           </h3>
-          <p className="text-sm text-gray-600">{t('dashboard.card.avg_order_value')}</p>
+          <p className="text-sm text-gray-600">Avg. Order Value</p>
         </div>
 
         {/* Monthly Sales */}
@@ -212,10 +269,10 @@ export default function Overview() {
             <div className="bg-pink-100 p-3 rounded-lg">
               <Package className="w-6 h-6 text-pink-600" />
             </div>
-            <span className="text-sm font-medium text-gray-600">{t('dashboard.card.this_month')}</span>
+            <span className="text-sm font-medium text-gray-600">This month</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">{stats.monthly_sales}</h3>
-          <p className="text-sm text-gray-600">{t('dashboard.card.monthly_sales')}</p>
+          <p className="text-sm text-gray-600">Monthly Sales</p>
         </div>
 
         {/* Low Stock Alert */}
@@ -224,10 +281,10 @@ export default function Overview() {
             <div className="bg-red-100 p-3 rounded-lg">
               <AlertTriangle className="w-6 h-6 text-red-600" />
             </div>
-            <span className="text-sm font-medium text-red-600">{t('dashboard.card.low_stock_attention')}</span>
+            <span className="text-sm font-medium text-red-600">Low Stock</span>
           </div>
           <h3 className="text-3xl font-bold text-red-900 mb-1"> {loading ? '...' : lowStockCount}</h3>
-          <p className="text-sm text-gray-600">{t('dashboard.card.low_stock')}</p>
+          <p className="text-sm text-gray-600">Low stock items</p>
         </div>
       </div>
 

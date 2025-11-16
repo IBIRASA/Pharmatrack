@@ -34,6 +34,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Patient, Pharmacy
+import requests
 
 User = get_user_model()
 
@@ -45,6 +46,22 @@ class RegisterSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
     address = serializers.CharField(max_length=500, required=False, allow_blank=True)
+    latitude = serializers.FloatField(required=False)
+    longitude = serializers.FloatField(required=False)
+
+    def validate_latitude(self, value):
+        if value is None:
+            return value
+        if value < -90 or value > 90:
+            raise serializers.ValidationError('Latitude must be between -90 and 90')
+        return value
+
+    def validate_longitude(self, value):
+        if value is None:
+            return value
+        if value < -180 or value > 180:
+            raise serializers.ValidationError('Longitude must be between -180 and 180')
+        return value
 
     def validate(self, data):
         if data['password'] != data['password_confirm']:
@@ -76,6 +93,14 @@ class RegisterSerializer(serializers.Serializer):
             user_type=user_type
         )
 
+        # If pharmacy registers, mark the account inactive until admin approval.
+        if user_type == 'pharmacy':
+            try:
+                user.is_active = False
+                user.save()
+            except Exception:
+                pass
+
         # Create profile based on user type
         if user_type == 'patient':
             Patient.objects.create(
@@ -84,12 +109,51 @@ class RegisterSerializer(serializers.Serializer):
                 phone=phone
             )
         elif user_type == 'pharmacy':
+            # Allow optional coordinates; if address missing but coords provided, try reverse geocoding
+            latitude = validated_data.get('latitude')
+            longitude = validated_data.get('longitude')
+
+            # If no address provided but lat/lon given, attempt a simple reverse geocode using Nominatim
+            if not address and latitude is not None and longitude is not None:
+                try:
+                    resp = requests.get(
+                        'https://nominatim.openstreetmap.org/reverse',
+                        params={'format': 'jsonv2', 'lat': latitude, 'lon': longitude},
+                        headers={'User-Agent': 'Pharmatrack/1.0'} ,
+                        timeout=5
+                    )
+                    if resp.ok:
+                        data = resp.json()
+                        address = data.get('display_name', address) or address
+                except Exception:
+                    # Don't fail registration if reverse geocode fails; address can be empty
+                    address = address
+
             Pharmacy.objects.create(
                 user=user,
                 name=name,
                 phone=phone,
-                address=address
+                address=address,
+                latitude=latitude,
+                longitude=longitude
             )
+            # Also ensure inventory.Pharmacy (Django inventory app) is created/updated so inventory endpoints
+            # have latitude/longitude available. This avoids duplication issues if inventory app is present.
+            try:
+                from inventory.models import Pharmacy as InventoryPharmacy
+                InventoryPharmacy.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        'name': name or address or user.username,
+                        'address': address or '',
+                        'phone': phone or '',
+                        'latitude': float(latitude) if latitude is not None else 0.0,
+                        'longitude': float(longitude) if longitude is not None else 0.0,
+                    }
+                )
+            except Exception:
+                # inventory app may not be installed or import may fail; ignore to keep registration robust
+                pass
 
         return user
 

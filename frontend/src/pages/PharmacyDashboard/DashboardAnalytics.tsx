@@ -52,8 +52,12 @@ const DashboardAnalytics: React.FC = () => {
 
   useEffect(() => {
     loadStats();
+    // listen for in-app sale events so dashboard refreshes automatically
+    const onSale = () => loadStats();
+    window.addEventListener('pharmatrack:sale:created', onSale);
     return () => {
       chartInstance.current?.destroy();
+      window.removeEventListener('pharmatrack:sale:created', onSale);
     };
   }, []);
 
@@ -84,6 +88,38 @@ const DashboardAnalytics: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Dev fallback: if dashboard stats have no weekly sales, populate from mock localStorage data
+  useEffect(() => {
+    (async () => {
+      if (!(import.meta as any).env?.DEV) return;
+      try {
+        const d = await getDashboardStats();
+        const wk = Array.isArray(d.weekly_sales) ? d.weekly_sales : [];
+        if (!wk || wk.length === 0) {
+          // try to load mock sales and compute simple weekly buckets
+          const mock = await (await import('../../utils/api')).getMockSalesHistory(1, 100);
+          const sales = mock.results || [];
+          if (sales.length > 0) {
+            const now = new Date();
+            const days = Array(7).fill(0);
+            sales.forEach((s: any) => {
+              try {
+                const ddate = new Date(s.sale_date);
+                const diff = Math.floor((now.getTime() - ddate.getTime()) / (1000 * 60 * 60 * 24));
+                if (diff >= 0 && diff < 7) {
+                  days[6 - diff] += Number(s.total_price || s.total_price || 0);
+                }
+              } catch (e) {}
+            });
+            setWeeklySales(days.map(n => Number(n || 0)));
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, []);
 
   const createChart = () => {
     if (chartInstance.current) chartInstance.current.destroy();

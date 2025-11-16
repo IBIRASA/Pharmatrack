@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
 import PatientActionCards from "./PatientActionCards";
 import PatientSettings from "./PatientSettings";
-import { getCurrentUser } from "../../utils/auth";
+import { useAuth } from "../../context/AuthContext";
 import { LogOut, Search, MapPin, User, Home, Hospital } from "lucide-react";
+import NotificationBell from '../../components/NotificationBell';
+import FloatingNotification from '../../components/FloatingNotification';
+import { getNotifications } from '../../utils/notificationsApi';
+import PatientOrdersModal from '../../components/modals/PatientOrdersModal';
 import { useTranslation } from "../../i18n";
 import { useNavigate } from "react-router-dom";
 import MedicineSearch from "./MedicineSearch";
@@ -22,21 +26,64 @@ type AuthUser = {
 
 const PatientDashboardApp: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const { user: authUser } = useAuth();
   const [activeView, setActiveView] = useState<ActiveView>("home");
+  // transient small toasts removed; PageBanner shows messages centrally
+  const [lastUnreadCount, setLastUnreadCount] = useState<number>(0);
+  const [ordersOpen, setOrdersOpen] = useState<boolean>(false);
+  const [highlightOrderId, setHighlightOrderId] = useState<number | null>(null);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   useEffect(() => {
-    const user = getCurrentUser() as unknown as AuthUser | null;
     const isPatient = (u: AuthUser | null) =>
       (u?.user_type ?? u?.role) === "patient";
 
-    if (!isPatient(user)) {
+    if (!isPatient(authUser as unknown as AuthUser | null)) {
       navigate('/login', { replace: true });
     } else {
-      setCurrentUser(user);
+      setCurrentUser(authUser as unknown as AuthUser | null);
     }
-  }, [navigate]);
+  }, [authUser, navigate]);
+
+  // Poll for notifications and show a toast on new unread notifications
+  useEffect(() => {
+    let mounted = true;
+    const initialized = { value: false } as { value: boolean };
+    async function poll() {
+      try {
+        const items = await getNotifications();
+        if (!mounted) return;
+        const unread = items.filter((i) => !i.read).length;
+        // On initial mount we don't want to surface historical unread notifications
+        // as banners/toasts. Initialize the counter on first poll and only show
+        // banners for notifications that arrive after the page is open.
+        if (!initialized.value) {
+          initialized.value = true;
+          setLastUnreadCount(unread);
+          return;
+        }
+
+        if (unread > lastUnreadCount) {
+          // New notifications arrived while the user is on the page. Do NOT
+          // surface them as page-level banners automatically. The user can
+          // view notifications by opening the bell. We only update the
+          // unread counter so the badge reflects new messages.
+          // (This avoids flooding the UI with historic or bulk messages.)
+        }
+        setLastUnreadCount(unread);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    poll();
+    const iv = setInterval(poll, 10000);
+    return () => {
+      mounted = false;
+      clearInterval(iv);
+    };
+  }, [lastUnreadCount]);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -44,6 +91,23 @@ const PatientDashboardApp: React.FC = () => {
     setCurrentUser(null);
     navigate('/login', { replace: true });
   };
+
+  // Listen for global request to open orders modal (from bell or other places)
+  React.useEffect(() => {
+    const onOpen = (e: any) => {
+      setOrdersOpen(true);
+      try {
+        const id = e?.detail?.order_id ?? e?.detail?.orderId ?? null;
+        setHighlightOrderId(id || null);
+      } catch (err) {
+        setHighlightOrderId(null);
+      }
+    };
+    window.addEventListener('pharmatrack:openOrders', onOpen as EventListener);
+    return () => window.removeEventListener('pharmatrack:openOrders', onOpen as EventListener);
+  }, []);
+
+  // PageBanner reads pending toasts and listens for events; no local toast state here.
 
   const renderContent = () => {
     switch (activeView) {
@@ -119,6 +183,18 @@ const PatientDashboardApp: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              <div className="text-right mr-3 flex items-center gap-2">
+                <NotificationBell />
+                {currentUser?.user_type === 'patient' && (
+                  <button
+                    onClick={() => setOrdersOpen(true)}
+                    className="bg-white text-green-700 px-3 py-1 rounded-lg font-semibold text-sm border border-gray-200"
+                    aria-label="Open my orders"
+                  >
+                    My Orders
+                  </button>
+                )}
+              </div>
               <div className="hidden md:block text-right">
                 <p className="text-sm font-semibold text-gray-900">{currentUser.username}</p>
                 <p className="text-xs text-gray-600">{currentUser.email}</p>
@@ -191,6 +267,9 @@ const PatientDashboardApp: React.FC = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderContent()}
+  <FloatingNotification />
+  <PatientOrdersModal open={ordersOpen} onClose={() => { setOrdersOpen(false); setHighlightOrderId(null); }} highlightOrderId={highlightOrderId} />
+        {/* small floating toasts removed; PageBanner displays messages */}
       </main>
     </div>
   );

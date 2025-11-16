@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { User, Mail, Lock, Save } from "lucide-react";
 import { useTranslation } from '../../i18n';
+import { updateCurrentUser } from '../../utils/api';
+import { showSuccess, showError } from '../../utils/notifications';
 
 const PatientSettings: React.FC = () => {
-  const { user } = useAuth();
+  const { user, setAuth } = useAuth();
   const [formData, setFormData] = useState({
     username: user?.name || "",
     email: user?.email || "",
@@ -12,6 +14,15 @@ const PatientSettings: React.FC = () => {
     newPassword: "",
     confirmPassword: "",
   });
+  
+  // Sync local form with latest user data (so saving multiple times works)
+  useEffect(() => {
+    setFormData((f) => ({
+      ...f,
+      username: user?.name || "",
+      email: user?.email || "",
+    }));
+  }, [user]);
   const [, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const { t } = useTranslation();
 
@@ -21,9 +32,39 @@ const PatientSettings: React.FC = () => {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+    (async () => {
+      setSaving(true);
+      try {
+        const payload: any = {};
+        if ((user as any)?.name !== formData.username) payload.name = formData.username;
+        if ((user as any)?.email !== formData.email) payload.email = formData.email;
+
+        if (Object.keys(payload).length === 0) {
+          setAlert({ type: 'success', message: t('patient.settings.profile_updated') });
+          setTimeout(() => setAlert(null), 1500);
+          setSaving(false);
+          return;
+        }
+
+        const updated = await updateCurrentUser(payload);
+        const token = localStorage.getItem('token');
+        const mergedUser = { ...(user as any), ...updated };
+        setAuth({ token: token, user: mergedUser as any });
   setAlert({ type: "success", message: t('patient.settings.profile_updated') });
-    setTimeout(() => setAlert(null), 2500);
+  try { showSuccess(t('patient.settings.profile_updated')); } catch {}
+        setTimeout(() => setAlert(null), 2500);
+      } catch (err: any) {
+  console.error('Failed to save profile', err);
+  try { showError(err?.detail || 'Failed to save profile'); } catch {}
+  setAlert({ type: 'error', message: err?.detail || 'Failed to save profile' });
+        setTimeout(() => setAlert(null), 2500);
+      } finally {
+        setSaving(false);
+      }
+    })();
   };
+
+  const [saving, setSaving] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -111,7 +152,9 @@ const PatientSettings: React.FC = () => {
           <div className="flex justify-end">
               <button
               type="submit"
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 font-semibold flex items-center gap-2 shadow-md transition-all"
+              disabled={saving}
+              aria-busy={saving}
+              className={`bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 font-semibold flex items-center gap-2 shadow-md transition-all ${saving ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
               <Save className="w-5 h-5" />
               {t('patient.settings.save_changes')}

@@ -9,6 +9,7 @@ import PatientDashboard from "./pages/PatientDashboard/PatientDashboard";
 import PharmacyDashboard from "./pages/PharmacyDashboard/PharmacyDashboard";
 import LandingPage from "./pages/LandingPage";
 import NotFound from "./pages/NotFound";
+import PageBanner from './components/PageBanner';
 
 function ProtectedRoute({ children }: { children: React.ReactElement }) {
   const token = localStorage.getItem("token");
@@ -23,8 +24,12 @@ export default function App() {
       once: true,
     });
   }, []);
+  // PageBanner handles persistence and listening for toast events.
   return (
     <BrowserRouter>
+      {/* Page-level persistent banners (dismissible) */}
+      <PageBanner />
+      {/* PageBanner displays messages (large banners). Small floating toasts removed per user preference. */}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />

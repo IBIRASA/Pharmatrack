@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2, Plus } from 'lucide-react';
 import { createMedicine } from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
+import { showSuccess, showError } from '../../utils/notifications';
 import { useTranslation } from '../../i18n';
 
 interface AddMedicineModalProps {
@@ -24,6 +26,7 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (open) {
@@ -59,6 +62,11 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
     setError(null);
     if (!validate()) return;
 
+    if ((user as any)?.user_type !== 'pharmacy') {
+      setError('Only pharmacies are allowed to add medicines.');
+      return;
+    }
+
     setLoading(true);
     try {
       const payload = {
@@ -75,11 +83,46 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
       };
 
       const created = await createMedicine(payload);
-      onCreated(created);
-      onClose();
+
+  onCreated(created);
+  showSuccess(`Medicine "${created.name}" added`);
+  onClose();
     } catch (err: any) {
       console.error('Create medicine error:', err);
-      setError(err?.detail || err?.message || 'Failed to create medicine');
+     
+      setFieldErrors({});
+
+    
+      let userMsg = 'Failed to create medicine';
+      try {
+        if (!err) {
+          userMsg = 'Failed to create medicine';
+        } else if (typeof err === 'string') {
+          userMsg = err;
+        } else if (err.detail && typeof err.detail === 'string') {
+          userMsg = err.detail;
+        } else {
+          const fe: Record<string, string> = {};
+          for (const k of Object.keys(err)) {
+            const v = (err as any)[k];
+            if (Array.isArray(v) && v.length) {
+              fe[k] = String(v[0]);
+            } else if (typeof v === 'string') {
+              fe[k] = v;
+            }
+          }
+          if (Object.keys(fe).length) {
+            setFieldErrors(fe);
+            userMsg = Object.values(fe)[0];
+          }
+        }
+      } catch (ex) {
+        // fallback
+        userMsg = err?.detail || err?.message || 'Failed to create medicine';
+      }
+
+  setError(userMsg);
+  showError(userMsg);
     } finally {
       setLoading(false);
     }
@@ -99,7 +142,7 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* global error */}
+        
           {error && <div className="text-sm text-red-700 bg-red-50 p-2 rounded">{error}</div>}
           <div>
             <label className="block text-sm font-medium text-gray-700">{t('modals.add_medicine.name_label') ?? 'Medicine name'} <span className="text-red-500">*</span></label>

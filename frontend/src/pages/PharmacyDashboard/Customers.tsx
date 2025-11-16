@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { getCustomers } from '../../utils/api';
 import { Users, Phone, Calendar, DollarSign, ShoppingCart, Loader } from 'lucide-react';
 import { useTranslation } from '../../i18n';
+import { getCustomers, getOrders, getSalesData } from '../../utils/api';
 
 interface Customer {
   id: string;
@@ -17,19 +17,32 @@ export default function Customers() {
   const { t } = useTranslation();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadCustomers();
   }, []);
 
+  useEffect(() => {
+    const onSale = () => loadCustomers();
+    window.addEventListener('pharmatrack:sale:created', onSale);
+    return () => window.removeEventListener('pharmatrack:sale:created', onSale);
+  }, []);
+
   const loadCustomers = async () => {
     try {
       setLoading(true);
+      setError(null);
+      // Use the shared API helper which respects API_BASE_URL and Authorization
       const data = await getCustomers();
-      setCustomers(data);
-    } catch (error) {
-      console.error('Error loading customers:', error);
+      setCustomers(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error('Error loading customers:', err);
+      // err may be an object from axios or a string
+      const message = err?.message || (typeof err === 'string' ? err : JSON.stringify(err)) || 'Unknown error';
+      setError(message);
+      setCustomers([]);
     } finally {
       setLoading(false);
     }
@@ -40,10 +53,48 @@ export default function Customers() {
     customer.phone.includes(searchTerm)
   );
 
+  // Diagnostic data when customers list is empty
+  const [rawOrders, setRawOrders] = useState<any[] | null>(null);
+  const [rawSales, setRawSales] = useState<any[] | null>(null);
+  const [diagLoading, setDiagLoading] = useState(false);
+
+  const loadDiagnostics = async () => {
+    try {
+      setDiagLoading(true);
+      const [orders, sales] = await Promise.all([
+        getOrders({ limit: 50 }),
+        getSalesData({ limit: 50 })
+      ]);
+      setRawOrders(Array.isArray(orders) ? orders : []);
+      // getSalesData may return an object with results or an array
+      if (Array.isArray(sales)) setRawSales(sales);
+      else if (sales && Array.isArray((sales as any).results)) setRawSales((sales as any).results);
+      else setRawSales([]);
+    } catch (e) {
+      console.error('Diagnostics fetch failed', e);
+      setRawOrders([]);
+      setRawSales([]);
+    } finally {
+      setDiagLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <Loader className="w-8 h-8 animate-spin text-green-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[300px] bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-sm text-yellow-900">
+        <h3 className="font-semibold mb-2">Unable to load customers</h3>
+        <pre className="whitespace-pre-wrap text-xs">{error}</pre>
+        <div className="mt-4">
+          <button onClick={loadCustomers} className="bg-green-600 text-white px-4 py-2 rounded">Retry</button>
+        </div>
       </div>
     );
   }
@@ -83,6 +134,33 @@ export default function Customers() {
             <p className="text-gray-600">
               {searchTerm ? t('customers.no_found.try') : t('customers.no_data')}
             </p>
+
+            {/* Diagnostics for developers: show raw orders/sales when customers list is empty */}
+            <div className="mt-6">
+              <p className="text-sm text-gray-500 mb-2">Diagnostics</p>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  onClick={loadDiagnostics}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm"
+                >
+                  {diagLoading ? 'Loading...' : 'Load raw orders & sales'}
+                </button>
+              </div>
+
+              {rawOrders && (
+                <div className="mt-4 text-left max-w-2xl mx-auto">
+                  <div className="text-sm text-gray-700 font-semibold">Orders ({rawOrders.length})</div>
+                  <pre className="text-xs text-gray-600 max-h-40 overflow-auto bg-gray-50 p-2 rounded mt-2">{JSON.stringify(rawOrders.slice(0,5), null, 2)}</pre>
+                </div>
+              )}
+
+              {rawSales && (
+                <div className="mt-4 text-left max-w-2xl mx-auto">
+                  <div className="text-sm text-gray-700 font-semibold">Sales ({rawSales.length})</div>
+                  <pre className="text-xs text-gray-600 max-h-40 overflow-auto bg-gray-50 p-2 rounded mt-2">{JSON.stringify(rawSales.slice(0,5), null, 2)}</pre>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           filteredCustomers.map((customer) => (

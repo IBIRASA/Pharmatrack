@@ -37,17 +37,6 @@ export default function NearbyPharmacies() {
     const distance = R * c;
     return Math.round(distance * 10) / 10; // Round to 1 decimal place
   };
-  const getUserAddress = async (lat: number, lon: number): Promise<string> => {
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=16`
-      );
-      const data = await response.json();
-      return data.display_name || 'Your location';
-    } catch (error) {
-      return 'Your location';
-    }
-  };
 
   // Smart pharmacy search - focuses on truly nearby pharmacies
   const findNearbyPharmacies = async (lat: number, lon: number, radius: number = 5) => {
@@ -55,7 +44,7 @@ export default function NearbyPharmacies() {
     setError('');
     setPharmacies([]);
     
-    console.log(' User location:', lat, lon, 'Search radius:', radius, 'km');
+  // Debug: user location logged during development. Removed to reduce console noise.
     
     try {
       let foundPharmacies: PharmacyItem[] = [];
@@ -63,9 +52,9 @@ export default function NearbyPharmacies() {
       // Method 1: Try OpenStreetMap (free, no API key needed)
       try {
         foundPharmacies = await fetchFromOpenStreetMap(lat, lon, radius);
-        console.log('Found pharmacies from OSM:', foundPharmacies.length);
+  // Found pharmacies from OSM: logging removed.
       } catch (osmError) {
-        console.log('OSM search failed:', osmError);
+  // OSM search failed: logging removed.
       }
       if (foundPharmacies.length < 3) {
         try {
@@ -73,9 +62,9 @@ export default function NearbyPharmacies() {
           // Filter to only include very close pharmacies from broader search
           const closePharmacies = broaderResults.filter(pharmacy => pharmacy.distance <= radius);
           foundPharmacies = [...foundPharmacies, ...closePharmacies];
-          console.log('Added close pharmacies from broader search:', closePharmacies.length);
+          // Added close pharmacies from broader search: logging removed.
         } catch (error) {
-          console.log('Broader search failed');
+          // Broader search failed: logging removed.
         }
       }
 
@@ -93,7 +82,7 @@ export default function NearbyPharmacies() {
       if (finalPharmacies.length === 0) {
         setError(t('patient.nearby.no_within').replace('{km}', String(radius)));
       } else {
-        console.log('Final pharmacies found:', finalPharmacies.length);
+  // Final pharmacies found: logging removed.
       }
 
     } catch (err: any) {
@@ -196,8 +185,7 @@ export default function NearbyPharmacies() {
           lon: pos.coords.longitude
         };
         setUserLocation(location);
-        const userAddress = await getUserAddress(location.lat, location.lon);
-        console.log(' User address:', userAddress);
+  // Optionally fetch user address if needed in future. Skipping to reduce network calls.
         // Start searching for nearby pharmacies
         findNearbyPharmacies(location.lat, location.lon, searchRadius);
       },
@@ -339,7 +327,7 @@ export default function NearbyPharmacies() {
                       <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
                         {index + 1}
                       </div>
-                      <div className="font-bold text-lg text-gray-800">{pharmacy.name}</div>
+                      <div className="font-bold text-lg text-white">{pharmacy.name}</div>
                     </div>
                     <div className={`px-2 py-1 rounded-full text-xs font-medium ${getDistanceColor(pharmacy.distance)}`}>
                       {getDistanceText(pharmacy.distance)}

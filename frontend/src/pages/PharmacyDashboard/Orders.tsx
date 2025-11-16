@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { getOrders, updateOrder, deleteOrder } from '../../utils/api';
+import { getOrders, deleteOrder, approveOrder, rejectOrder, markOrderShipped, getCurrentUser } from '../../utils/api';
 import { Package, Loader, AlertCircle, CheckCircle, Clock, XCircle, Trash2} from 'lucide-react';
+import { showSuccess, showError } from '../../utils/notifications';
 import { useTranslation } from '../../i18n';
 
 interface Order {
@@ -14,6 +15,18 @@ interface Order {
 
 export default function Orders() {
   const { t } = useTranslation();
+  const [localUser, setLocalUser] = useState<any>(null);
+  const [forceShowActions, setForceShowActions] = useState<boolean>(false);
+  const [devOverride, setDevOverride] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem('pharmatrack_force_actions');
+      if (stored !== null) return stored === '1';
+      // Default to ON in dev mode so buttons are visible while developing.
+      return (import.meta as any).env?.DEV ? true : false;
+    } catch (e) {
+      return (import.meta as any).env?.DEV ? true : false;
+    }
+  });
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -21,7 +34,45 @@ export default function Orders() {
 
   useEffect(() => {
     loadOrders();
+    try {
+      const raw = localStorage.getItem('user');
+      const parsed = raw ? JSON.parse(raw) : null;
+      // Normalize the stored user shape. Some code stores { user: {...} } while others store the user object directly.
+      const candidate = parsed?.user ?? parsed;
+      if (candidate) {
+        // Normalize casing between user_type and userType
+        if (!candidate.user_type && candidate.userType) candidate.user_type = candidate.userType;
+      }
+      setLocalUser(candidate);
+      
+      if (!candidate) {
+        const token = localStorage.getItem('token');
+        if (token) {
+          getCurrentUser().then((u) => {
+            try {
+              // normalize returned user
+              if (!u.user_type && (u as any).userType) (u as any).user_type = (u as any).userType;
+              setLocalUser(u as any);
+            } catch (e) {
+              setLocalUser(u as any);
+            }
+          }).catch((e) => {
+            console.debug('getCurrentUser failed', e);
+          });
+        }
+      }
+    } catch (e) {
+      setLocalUser(null);
+    }
   }, []);
+
+  // Debug: log localUser + order statuses so we can see why buttons might be disabled
+  useEffect(() => {
+    try {
+      console.debug('Orders debug => localUser:', localUser);
+      console.debug('Orders debug => statuses:', orders.map(o => ({ id: o.id, status: canonicalStatus(o.status) })));
+    } catch (e) {}
+  }, [localUser, orders]);
 
   const loadOrders = async () => {
     try {
@@ -36,17 +87,7 @@ export default function Orders() {
     }
   };
 
-  const handleStatusChange = async (orderId: number, newStatus: string) => {
-    try {
-      await updateOrder(orderId, { status: newStatus });
-      setOrders(orders.map(order => 
-        order.id === orderId ? { ...order, status: newStatus } : order
-      ));
-    } catch (err) {
-      console.error('Error updating order:', err);
-      alert(t('orders.error.update'));
-    }
-  };
+  
 
   const handleDeleteOrder = async (orderId: number) => {
     if (!confirm(t('orders.delete.confirm'))) return;
@@ -54,14 +95,30 @@ export default function Orders() {
     try {
       await deleteOrder(orderId);
       setOrders(orders.filter(order => order.id !== orderId));
+      try { showSuccess(t('orders.delete.success') || 'Order deleted'); } catch {}
     } catch (err) {
       console.error('Error deleting order:', err);
-      alert(t('orders.error.delete'));
+      try { showError(t('orders.error.delete') || 'Failed to delete order'); } catch {}
     }
   };
 
+  // Normalize a variety of incoming status strings to canonical statuses
+  const canonicalStatus = (raw?: string) => {
+    const s = (raw || '').toString().toLowerCase().trim();
+    if (!s) return '';
+    if (s.includes('pend')) return 'pending';
+    if (s.includes('approv') || s.includes('reserv') || s.includes('reserve')) return 'approved';
+    if (s.includes('accept')) return 'accepted';
+    if (s.includes('ship')) return 'shipped';
+    if (s.includes('deliver') || s.includes('deliv')) return 'completed';
+    if (s.includes('complete')) return 'completed';
+    if (s.includes('cancel')) return 'cancelled';
+    return s;
+  };
+
   const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
+    const s = canonicalStatus(status);
+    switch (s) {
       case 'completed':
         return <CheckCircle className="w-5 h-5 text-green-600" />;
       case 'pending':
@@ -74,7 +131,8 @@ export default function Orders() {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    const s = canonicalStatus(status);
+    switch (s) {
       case 'completed':
         return 'bg-green-100 text-green-800';
       case 'pending':
@@ -86,9 +144,9 @@ export default function Orders() {
     }
   };
 
-  const filteredOrders = filter === 'all' 
-    ? orders 
-    : orders.filter(order => order.status.toLowerCase() === filter);
+  const filteredOrders = filter === 'all'
+    ? orders
+    : orders.filter(order => (canonicalStatus(order.status) === filter));
 
   if (loading) {
     return (
@@ -105,6 +163,30 @@ export default function Orders() {
       <div className="bg-linear-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-lg">
         <h2 className="text-3xl font-bold mb-2">{t('orders.title')}</h2>
         <p className="text-green-50">{t('orders.subtitle')}</p>
+        <div className="mt-4 flex items-center gap-3">
+          <div className="text-sm text-white/90">Logged as: <strong>{localUser?.user_type || localUser?.userType || 'unknown'}</strong></div>
+          <div className="ml-auto flex items-center gap-2">
+            <button onClick={() => setForceShowActions(s => !s)} className="bg-white/10 hover:bg-white/20 px-3 py-1 rounded">
+              {forceShowActions ? 'Hide action debug' : 'Show action buttons (debug)'}
+            </button>
+            <button onClick={() => {
+                const next = !devOverride;
+                try { localStorage.setItem('pharmatrack_force_actions', next ? '1' : '0'); } catch (e) {}
+                setDevOverride(next);
+              }}
+              className={`px-3 py-1 rounded ${devOverride ? 'bg-white text-black' : 'bg-white/10 text-white'} hover:opacity-90 text-sm font-medium`}
+              title="When ON, all action buttons are shown and enabled for testing (dev only)."
+            >
+              {devOverride ? 'Show ALL actions: ON' : 'Show ALL actions: OFF'}
+            </button>
+          </div>
+        </div>
+          {/* Visible hint when not a pharmacy user to avoid confusion */}
+          {(!forceShowActions && !(localUser?.user_type === 'pharmacy' || localUser?.userType === 'pharmacy')) && (
+            <div className="mt-3 text-sm text-yellow-100 bg-yellow-900/10 border border-yellow-200/10 rounded-md px-3 py-2">
+              You are not signed in as a pharmacy. Action buttons are disabled. Toggle "Show action buttons (debug)" to force-enable buttons for testing.
+            </div>
+          )}
       </div>
 
       {/* Filters */}
@@ -194,10 +276,17 @@ export default function Orders() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        {getStatusIcon(order.status)}
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
-                          {t(`orders.status.${order.status.toLowerCase()}`) || order.status}
-                        </span>
+                        {getStatusIcon(order.status || '')}
+                        {
+                          (() => {
+                            const statusNorm = canonicalStatus(order.status);
+                            return (
+                              <span title={`raw: ${order.status || ''}`} className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(statusNorm)}`}>
+                                {t(`orders.status.${statusNorm}`) || (statusNorm || order.status || 'Unknown')}
+                              </span>
+                            );
+                          })()
+                        }
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -207,15 +296,88 @@ export default function Orders() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <select
-                          value={order.status}
-                          onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                          className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        {/* Approve */}
+                        <button
+                          onClick={async () => {
+                            if (!confirm(t('orders.approve.confirm') || 'Approve this order?')) return;
+                            try {
+                              await approveOrder(order.id);
+                              await loadOrders();
+                              try { showSuccess(t('orders.approve.success') || 'Order approved'); } catch {}
+                            } catch (err: any) {
+                              console.error('Approve error', err);
+                              try { showError(t('orders.approve.error') || 'Failed to approve order'); } catch {}
+                            }
+                          }}
+                          disabled={devOverride ? false : (!(canonicalStatus(order.status) === 'pending') || (!forceShowActions && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy'))}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium ${(devOverride || canonicalStatus(order.status) === 'pending') ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-500'} ${((!forceShowActions && !devOverride && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy')) ? 'opacity-60' : ''}`}
+                          title={t('orders.approve')}
                         >
-                          <option value="pending">{t('orders.status.pending')}</option>
-                          <option value="completed">{t('orders.status.completed')}</option>
-                          <option value="cancelled">{t('orders.status.cancelled')}</option>
-                        </select>
+                          {t('orders.approve') || 'Approve'}
+                        </button>
+
+                        {/* Mark shipped */}
+                        <button
+                          onClick={async () => {
+                            if (!confirm(t('orders.ship.confirm') || 'Mark this order as shipped?')) return;
+                            try {
+                              await markOrderShipped(order.id);
+                              await loadOrders();
+                              try { showSuccess(t('orders.ship.success') || 'Order marked shipped'); } catch {}
+                            } catch (err: any) {
+                              console.error('Ship error', err);
+                              try { showError(t('orders.ship.error') || 'Failed to mark shipped'); } catch {}
+                            }
+                          }}
+                          disabled={devOverride ? false : (!(['approved','accepted'].includes(canonicalStatus(order.status))) || (!forceShowActions && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy'))}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium ${(devOverride || ['approved','accepted'].includes(canonicalStatus(order.status)) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500')} ${((!forceShowActions && !devOverride && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy')) ? 'opacity-60' : ''}`}
+                          title={t('orders.ship')}
+                        >
+                          {t('orders.ship') || 'Ship'}
+                        </button>
+
+                        {/* Complete */}
+                        <button
+                          onClick={async () => {
+                            if (!confirm(t('orders.complete.confirm') || 'Mark this order as completed?')) return;
+                            try {
+                              await (await import('../../utils/api')).completeOrder(order.id);
+                              await loadOrders();
+              try { showSuccess(t('orders.complete.success') || 'Order marked completed'); } catch {}
+                            } catch (err: any) {
+              console.error('Complete error', err);
+              // Prefer server-provided messages when available
+              const serverMsg = err && ((err.detail) || (err.error) || (err.current_status)) ? (err.detail || err.error || `Current status: ${err.current_status}`) : null;
+              try { showError(serverMsg || t('orders.complete.error') || 'Failed to mark completed'); } catch {}
+                            }
+                          }}
+                          disabled={devOverride ? false : (!(['shipped','approved'].includes(canonicalStatus(order.status))) || (!forceShowActions && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy'))}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium ${(devOverride || ['shipped','approved'].includes(canonicalStatus(order.status)) ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500')} ${((!forceShowActions && !devOverride && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy')) ? 'opacity-60' : ''}`}
+                          title={t('orders.complete')}
+                        >
+                          {t('orders.complete') || 'Complete'}
+                        </button>
+
+                        {/* Reject */}
+                        <button
+                          onClick={async () => {
+                            if (!confirm(t('orders.reject.confirm') || 'Reject this order?')) return;
+                            try {
+                              await rejectOrder(order.id);
+                              await loadOrders();
+                              try { showSuccess(t('orders.reject.success') || 'Order rejected'); } catch {}
+                            } catch (err: any) {
+                              console.error('Reject error', err);
+                              try { showError(t('orders.reject.error') || 'Failed to reject order'); } catch {}
+                            }
+                          }}
+                          disabled={devOverride ? false : (!( ['pending','approved'].includes(canonicalStatus(order.status))) || (!forceShowActions && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy'))}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium ${(devOverride || ['pending','approved'].includes(canonicalStatus(order.status)) ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-500')} ${((!forceShowActions && !devOverride && localUser?.user_type !== 'pharmacy' && localUser?.userType !== 'pharmacy')) ? 'opacity-60' : ''}`}
+                          title={t('orders.reject')}
+                        >
+                          {t('orders.reject') || 'Reject'}
+                        </button>
+
                         <button
                           onClick={() => handleDeleteOrder(order.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -241,19 +403,19 @@ export default function Orders() {
           <div className="bg-yellow-50 rounded-xl shadow-sm border border-yellow-200 p-6">
             <p className="text-sm text-yellow-700 mb-1">Pending</p>
             <p className="text-2xl font-bold text-yellow-800">
-              {orders.filter(o => o.status.toLowerCase() === 'pending').length}
+              {orders.filter(o => (canonicalStatus(o.status) === 'pending')).length}
             </p>
           </div>
           <div className="bg-green-50 rounded-xl shadow-sm border border-green-200 p-6">
             <p className="text-sm text-green-700 mb-1">Completed</p>
             <p className="text-2xl font-bold text-green-800">
-              {orders.filter(o => o.status.toLowerCase() === 'completed').length}
+              {orders.filter(o => (canonicalStatus(o.status) === 'completed')).length}
             </p>
           </div>
           <div className="bg-red-50 rounded-xl shadow-sm border border-red-200 p-6">
             <p className="text-sm text-red-700 mb-1">Cancelled</p>
             <p className="text-2xl font-bold text-red-800">
-              {orders.filter(o => o.status.toLowerCase() === 'cancelled').length}
+              {orders.filter(o => (canonicalStatus(o.status) === 'cancelled')).length}
             </p>
           </div>
         </div>
@@ -261,3 +423,5 @@ export default function Orders() {
     </div>
   );
 }
+
+// Debug logs removed: showing user/token in console was noisy in production/dev

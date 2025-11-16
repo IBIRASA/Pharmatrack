@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Search, Navigation, Mail, Package, DollarSign, Loader, AlertCircle } from 'lucide-react';
-import { getMedicines, type Medicine as APIMedicine } from '../../utils/api';
+import { getMedicines, type Medicine as APIMedicine, getCurrentUser } from '../../utils/api';
+import { showInfo } from '../../utils/notifications';
+import CreateOrderModal from '../../components/modals/CreateOrderModal';
+import PatientOrdersModal from '../../components/modals/PatientOrdersModal';
+import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../i18n';
 
 interface Medicine extends APIMedicine {
@@ -18,6 +22,10 @@ interface GroupedPharmacy {
 export default function MedicineSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<Medicine[]>([]);
+  const [orderOpen, setOrderOpen] = useState(false);
+  const [selectedMedForOrder, setSelectedMedForOrder] = useState<Medicine | null>(null);
+  const [ordersOpen, setOrdersOpen] = useState(false);
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string>('');
@@ -33,17 +41,45 @@ export default function MedicineSearch() {
     setLoading(true);
     setSearched(true);
     setError('');
-    
-    try {
-      const data = await getMedicines({ search: searchQuery }) as Medicine[];
-      console.log('Search results:', data);
-      setResults(data);
-    } catch (err: any) {
-      console.error('Search error:', err);
-      setError('Failed to search medicines. Please try again.');
-      setResults([]);
-    } finally {
-      setLoading(false);
+
+    // Try getting user's location first (non-blocking fallback to search without location)
+    const doSearch = async (latitude?: number, longitude?: number) => {
+      try {
+        const params: any = { search: searchQuery };
+        if (latitude != null && longitude != null) {
+          params.latitude = latitude;
+          params.longitude = longitude;
+        }
+        const data = await getMedicines(params) as Medicine[];
+        console.log('Search results:', data);
+        setResults(data);
+      } catch (err: any) {
+        console.error('Search error:', err);
+        setError('Failed to search medicines. Please try again.');
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (navigator.geolocation) {
+      let resolved = false;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          resolved = true;
+          doSearch(pos.coords.latitude, pos.coords.longitude);
+        },
+        () => {
+          if (!resolved) doSearch();
+        },
+        { timeout: 5000 }
+      );
+      // If geolocation hangs, fallback after timeout
+      setTimeout(() => {
+        if (!resolved) doSearch();
+      }, 6000);
+    } else {
+      await doSearch();
     }
   };
 
@@ -67,12 +103,81 @@ export default function MedicineSearch() {
 
   const { t } = useTranslation();
 
+  // Robust check for patient user: prefer context, fall back to localStorage parsing
+  const [authUserLocal, setAuthUserLocal] = React.useState<any | null>(null);
+
+  // fetch authoritative user from server when token exists
+  React.useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const u = await getCurrentUser();
+        if (mounted) setAuthUserLocal(u);
+      } catch (err) {
+        // ignore; leave authUserLocal null
+        console.debug('getCurrentUser failed', err);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Debug logging to help surface auth detection problems
+  React.useEffect(() => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      console.debug('MedicineSearch auth debug', { tokenPresent: !!token, authUserLocal, contextUser: user });
+    } catch (e) {
+      console.debug('MedicineSearch debug error', e);
+    }
+  }, [authUserLocal, user]);
+
+  // Listen for global request to open the My Orders modal (dispatched from header)
+  React.useEffect(() => {
+    const onOpenOrders = () => setOrdersOpen(true);
+    window.addEventListener('pharmatrack:openOrders', onOpenOrders as EventListener);
+    return () => window.removeEventListener('pharmatrack:openOrders', onOpenOrders as EventListener);
+  }, []);
+
+  const isPatientUser = () => {
+    try {
+      // Prefer server-verified user
+      if (authUserLocal && (authUserLocal.user_type === 'patient' || authUserLocal.userType === 'patient')) return true;
+      if (user && (user.user_type === 'patient' || (user as any).userType === 'patient')) return true;
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // support multiple storage shapes: user, auth.user, nested
+        const candidate = parsed?.user ?? parsed;
+        if (candidate && (candidate.user_type === 'patient' || candidate.userType === 'patient')) return true;
+      }
+      // fallback: token presence allows optimistic button (server will validate on submit)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (token) return true;
+    } catch (e) {
+      // ignore parse errors
+    }
+    return false;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-lg">
-        <h2 className="text-3xl font-bold mb-2">{t('medicine_search.title')}</h2>
-        <p className="text-green-50">{t('medicine_search.subtitle')}</p>
+      <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-lg relative">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">{t('medicine_search.title')}</h2>
+            <p className="text-green-50">{t('medicine_search.subtitle')}</p>
+          </div>
+          <div>
+            {user?.user_type === 'patient' && (
+              <button onClick={() => setOrdersOpen(true)} className="bg-white text-green-700 px-4 py-2 rounded-lg font-semibold">
+                My Orders
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -244,6 +349,51 @@ export default function MedicineSearch() {
                               </p>
                             </div>
                           </div>
+                          <div className="ml-auto flex items-center gap-2">
+                            {/* Order button: always visible when in-stock. Click handler will verify user/server and open modal or redirect to login. */}
+                            {Number(medicine.stock_quantity) > 0 ? (
+                              <button
+                                onClick={async () => {
+                                  // If already clearly a patient, open modal immediately
+                                  if (isPatientUser()) {
+                                    setSelectedMedForOrder(medicine);
+                                    setOrderOpen(true);
+                                    return;
+                                  }
+
+                                  // Try to verify server-side if token exists
+                                  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+                                  if (token) {
+                                    try {
+                                      const u = await getCurrentUser();
+                                      // if server says patient, open
+                                      if (u && (u.user_type === 'patient' || (u as any).userType === 'patient')) {
+                                        setAuthUserLocal(u);
+                                        setSelectedMedForOrder(medicine);
+                                        setOrderOpen(true);
+                                        return;
+                                      }
+                                      // otherwise not allowed
+                                      try { showInfo('Only patients can place orders. Please sign in with a patient account.'); } catch {}
+                                      window.location.href = '/login';
+                                    } catch (err) {
+                                      // If verification fails, fall back to login
+                                      console.debug('getCurrentUser failed on order click', err);
+                                      window.location.href = '/login';
+                                    }
+                                  } else {
+                                    // No token: redirect to login
+                                    window.location.href = '/login';
+                                  }
+                                }}
+                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold text-sm shadow-sm"
+                              >
+                                Order
+                              </button>
+                            ) : (
+                              <span className="text-sm font-semibold text-red-600">Out of stock</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -252,8 +402,29 @@ export default function MedicineSearch() {
               </div>
             </div>
           ))}
+          {/* Order modal */}
+          <CreateOrderModal
+            open={orderOpen}
+            onClose={() => { setOrderOpen(false); setSelectedMedForOrder(null); }}
+            medicine={selectedMedForOrder ? {
+              id: selectedMedForOrder.id,
+              name: selectedMedForOrder.name,
+              unit_price: selectedMedForOrder.unit_price,
+              stock_quantity: selectedMedForOrder.stock_quantity,
+              pharmacy_id: selectedMedForOrder.pharmacy_id,
+            } : null}
+            onPlaced={(result) => {
+              // Don't optimistically decrement stock here. Stock is only deducted when the pharmacy approves
+              // the order (server-side). Instead, refresh or rely on `My Orders` to show placed orders.
+              console.log('Order placed', result);
+            }}
+          />
+          <PatientOrdersModal open={ordersOpen} onClose={() => setOrdersOpen(false)} />
         </div>
       ) : null}
     </div>
   );
 }
+
+// Development-only debug helper (remove in production)
+// Development debug helper removed from UI.

@@ -12,3 +12,7 @@ class InventoryConfig(AppConfig):
             host=getattr(settings, 'MONGODB_URI', 'mongodb://127.0.0.1:27017'),
             alias='default',
         )
+        try:
+            import inventory.signals 
+        except Exception:
+            pass

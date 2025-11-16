@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Medicine, Order, OrderItem
+from .models import Medicine, Order, OrderItem, Sale, Customer
 
 @admin.register(Medicine)
 class MedicineAdmin(admin.ModelAdmin):
@@ -13,7 +13,20 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer_name', 'pharmacy', 'total_amount', 'status', 'created_at']
+    list_display = ['id', 'customer_name', 'patient', 'pharmacy', 'total_amount', 'status', 'created_at']
     list_filter = ['status', 'created_at']
-    search_fields = ['customer_name', 'customer_email']
+    search_fields = ['customer_name', 'pharmacy__username']
     inlines = [OrderItemInline]
+
+
+@admin.register(Sale)
+class SaleAdmin(admin.ModelAdmin):
+    list_display = ['id', 'pharmacy', 'medicine', 'quantity', 'total_price', 'customer', 'sale_date']
+    list_filter = ['sale_date', 'pharmacy']
+    search_fields = ['medicine__name', 'customer__name']
+
+
+@admin.register(Customer)
+class CustomerAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'email', 'phone', 'created_at']
+    search_fields = ['name', 'email', 'phone']
