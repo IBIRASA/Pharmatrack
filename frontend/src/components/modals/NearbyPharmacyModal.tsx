@@ -74,13 +74,13 @@ const NearbyPharmacyModal: React.FC<NearbyPharmacyModalProps> = ({ isOpen, onClo
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-2xl rounded-xl shadow-lg overflow-hidden">
-        <div className="px-6 py-4 border-b flex items-center justify-between">
+      <div className="bg-white w-full max-w-2xl rounded-xl shadow-lg overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="px-6 py-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
           <h3 className="text-lg font-semibold">{t('modals.nearby.title')}</h3>
           <button onClick={onClose} className="text-gray-600 hover:text-gray-800">{t('modals.nearby.close')}</button>
         </div>
 
-        <div className="px-6 py-4 flex items-center gap-3">
+  <div className="px-6 py-4 flex items-center gap-3">
           <label className="text-sm text-gray-600">{t('modals.nearby.radius_label')}</label>
           <select
             value={radius}
@@ -100,7 +100,7 @@ const NearbyPharmacyModal: React.FC<NearbyPharmacyModalProps> = ({ isOpen, onClo
           </button>
         </div>
 
-        <div className="px-6 pb-6">
+  <div className="px-6 pb-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 140px)' }}>
           {!coords && !error && (
             <div className="py-10 text-center text-gray-500">
               <Loader className="w-6 h-6 animate-spin mx-auto mb-3 text-green-600" />

@@ -84,14 +84,17 @@ function ThemeToggle() {
   try {
     const { t } = useTranslation();
     const { theme, toggle } = useTheme();
+    const btnClass = theme === 'dark'
+      ? 'inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white text-black hover:bg-gray-100'
+      : 'inline-flex items-center gap-2 px-3 py-2 rounded-full bg-gray-800 text-white hover:bg-gray-700';
     return (
       <button
         onClick={toggle}
-        className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-gray-800 text-white hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-900"
+        className={btnClass}
         title={theme === 'dark' ? (t('settings.appearance.dark') || 'Dark') : (t('settings.appearance.light') || 'Light')}
         aria-pressed={theme === 'dark'}
       >
-        {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />} 
+        {theme === 'dark' ? <Moon className="w-4 h-4 text-black" /> : <Sun className="w-4 h-4" />} 
         <span className="text-sm">{theme === 'dark' ? (t('settings.appearance.dark') || 'Dark') : (t('settings.appearance.light') || 'Light')}</span>
       </button>
     );
