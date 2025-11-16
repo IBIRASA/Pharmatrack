@@ -1,6 +1,7 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import register_user, login_user, me, pending_pharmacies, admin_approve_pharmacy, admin_reject_pharmacy
+from .views import create_superuser_via_secret
 
 urlpatterns = [
     path('register/', register_user, name='register'),
@@ -10,4 +11,5 @@ urlpatterns = [
     path('pending/', pending_pharmacies, name='pending_pharmacies'),
     path('pending/<int:user_id>/approve/', admin_approve_pharmacy, name='admin_approve_pharmacy'),
     path('pending/<int:user_id>/reject/', admin_reject_pharmacy, name='admin_reject_pharmacy'),
+    path('create-superuser/', create_superuser_via_secret, name='create_superuser_via_secret'),
 ]
