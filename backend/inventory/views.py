@@ -16,6 +16,47 @@ from .serializers import MedicineSerializer, OrderSerializer,SellRequestSerializ
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth import get_user_model
+import re
+
+
+def _get_or_create_customer(customer_name: str | None, customer_email: str | None, customer_phone: str | None):
+    """Normalize identifiers and try to find an existing Customer, creating one if needed.
+    Matching priority: email (lowercased) -> phone (digits only) -> name.
+    Returns a Customer instance or None if creation failed.
+    """
+    from .models import Customer
+    try:
+        email = (customer_email or '').strip().lower() if customer_email else None
+        phone = None
+        if customer_phone:
+            # normalize phone by keeping digits only
+            digits = re.sub(r"\D", "", str(customer_phone))
+            phone = digits if digits else None
+
+        name = (customer_name or '').strip() or None
+
+        if email:
+            obj, _ = Customer.objects.get_or_create(email=email, defaults={'name': name or '', 'phone': customer_phone})
+            return obj
+
+        if phone:
+            # try to find by phone (may have stored with formatting)
+            obj = Customer.objects.filter(phone__iregex=r"\D*" + re.sub(r"(\d)", r"\\1", phone) + r"\D*").first()
+            if obj:
+                return obj
+            obj, _ = Customer.objects.get_or_create(phone=customer_phone, defaults={'name': name or '', 'email': customer_email})
+            return obj
+
+        if name:
+            obj, _ = Customer.objects.get_or_create(name=name, defaults={'phone': customer_phone or '', 'email': customer_email})
+            return obj
+    except Exception:
+        try:
+            # last-resort create without uniqueness guarantees
+            return Customer.objects.create(name=customer_name or '', email=customer_email or None, phone=customer_phone or None)
+        except Exception:
+            return None
+
 
 
 def _display_name(user):
@@ -173,16 +214,27 @@ def customers_list(request):
     inv_pharm = InventoryPharmacy.objects.filter(user=user).first()
     if not inv_pharm:
         return Response({'error': 'Pharmacy profile not found for user'}, status=403)
+    def _norm_key(email: str | None, phone: str | None, name: str | None):
+        if email:
+            return f"email:{email.strip().lower()}"
+        if phone:
+            digits = re.sub(r"\D", "", str(phone))
+            if digits:
+                return f"phone:{digits}"
+        if name:
+            return f"name:{name.strip().lower()}"
+        return None
 
     for s in Sale.objects.filter(pharmacy=inv_pharm).select_related('customer'):
         if s.customer:
-            key = f"cust_{s.customer.id}"
+            cust = s.customer
+            key = _norm_key(getattr(cust, 'email', None), getattr(cust, 'phone', None), getattr(cust, 'name', None)) or f"cust_{cust.id}"
             entry = customers.get(key)
             if not entry:
                 entry = {
-                    'id': s.customer.id,
-                    'name': s.customer.name or (s.customer.email or 'Customer'),
-                    'phone': s.customer.phone or '',
+                    'id': cust.id,
+                    'name': cust.name or (cust.email or 'Customer'),
+                    'phone': cust.phone or '',
                     'total_purchases': 0,
                     'total_spent': 0.0,
                     'purchase_count': 0,
@@ -201,16 +253,15 @@ def customers_list(request):
 
     order_qs = Order.objects.filter(pharmacy=user).exclude(status__in=('rejected', 'cancelled'))
     for o in order_qs:
-        phone = (o.customer_phone or '').strip()
-        name = (o.customer_name or '').strip() or 'Customer'
-        group_key = phone if phone else name
-        key = f"anon_{group_key}"
+        phone = (o.customer_phone or '').strip() or None
+        name = (o.customer_name or '').strip() or None
+        key = _norm_key(None, phone, name) or (f"anon_{phone or name or o.id}")
         entry = customers.get(key)
         if not entry:
             entry = {
                 'id': key,
-                'name': name,
-                'phone': phone,
+                'name': name or (phone or 'Customer'),
+                'phone': phone or '',
                 'total_purchases': 0,
                 'total_spent': 0.0,
                 'purchase_count': 0,
@@ -809,11 +860,7 @@ def confirm_delivery(request, order_id):
             customer_email = getattr(order.patient, 'email', None) if order.patient else None
             customer_phone = order.customer_phone or None
             try:
-             
-                if customer_email:
-                    customer_obj, _ = Customer.objects.get_or_create(email=customer_email, defaults={'name': customer_name_val, 'phone': customer_phone})
-                else:
-                    customer_obj, _ = Customer.objects.get_or_create(name=customer_name_val, defaults={'email': customer_email, 'phone': customer_phone})
+                customer_obj = _get_or_create_customer(customer_name_val, customer_email, customer_phone)
             except Exception:
                 customer_obj = None
 
@@ -975,12 +1022,9 @@ def sell_medicine(request):
         med.stock_quantity = med.stock_quantity - qty
         med.save()
 
-        customer_obj = None
+        # Use consistent helper to find/create a Customer record to avoid duplicates
         try:
-            if customer_phone:
-                customer_obj, _ = InventoryCustomer.objects.get_or_create(phone=customer_phone, defaults={'name': customer_name, 'email': None})
-            elif customer_name:
-                customer_obj, _ = InventoryCustomer.objects.get_or_create(name=customer_name, defaults={'phone': ''})
+            customer_obj = _get_or_create_customer(customer_name or None, None, customer_phone or None)
         except Exception:
             customer_obj = None
 

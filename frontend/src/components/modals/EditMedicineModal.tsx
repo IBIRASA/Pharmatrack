@@ -88,15 +88,15 @@ const EditMedicineModal: React.FC<EditMedicineModalProps> = ({ open, onClose, me
 
   return (
     <div className="fixed inset-0  bg-black/30 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true">
-  <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="px-6 py-4 border-b flex items-center justify-between sticky top-0 bg-white">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="px-6 py-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
           <h3 className="text-lg font-semibold">{t('modals.edit_medicine.title')}</h3>
           <button onClick={onClose} disabled={loading} className="text-gray-600 hover:text-gray-800" aria-label={t('modals.edit_medicine.close') ?? undefined}>
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+  <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 72px)' }}>
           {error && <div className="text-sm text-red-700 bg-red-50 p-2 rounded">{error}</div>}
 
           <div>
