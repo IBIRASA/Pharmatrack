@@ -109,11 +109,15 @@ export default function Register() {
       <div className="max-w-lg w-full bg-white/80 backdrop-blur-lg border border-gray-100 rounded-3xl shadow-2xl p-8 space-y-8">
         {/* Logo */}
         <div className="text-center">
-          <img
-            src={logo}
-            alt={t('alt.logo') || 'PharmaFinder logo'}
-            className="w-20 h-20 mx-auto rounded-full object-contain shadow-md mb-4"
-          />
+         <Link to="/">
+  <img
+    src={logo}
+    alt={t('alt.logo') || 'PharmaFinder logo'}
+    className="w-20 h-20 mx-auto rounded-full object-contain shadow-md"  
+    data-aos="zoom-out" 
+  />
+</Link>
+
           
           <h2 className="text-3xl font-bold text-gray-900">{t('auth.register.title')}</h2>
           <p className="mt-2 text-gray-600">

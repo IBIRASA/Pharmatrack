@@ -6,7 +6,7 @@ import { useTranslation } from '../i18n';
 export default function Hero() {
   const { t } = useTranslation();
   return (
-    <section id="about" className="bg-linear-to-br bg-white min-h-screen flex items-center">
+    <section id="hero" className="bg-linear-to-br bg-white min-h-screen flex items-center">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid md:grid-cols-2 gap-32 items-center">
           {/*  Left Content */}

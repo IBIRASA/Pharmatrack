@@ -324,7 +324,7 @@ export default function NearbyPharmacies() {
                       <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
                         {index + 1}
                       </div>
-                      <div className="font-bold text-lg text-white">{pharmacy.name}</div>
+                      <div className="font-bold text-lg text-gray-900 dark:text-white">{pharmacy.name}</div>
                     </div>
                     <div className={`px-2 py-1 rounded-full text-xs font-medium ${getDistanceColor(pharmacy.distance)}`}>
                       {getDistanceText(pharmacy.distance)}

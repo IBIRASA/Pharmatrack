@@ -197,7 +197,7 @@ const DashboardAnalytics: React.FC = () => {
               return (
                 <div
                   key={idx}
-                  className={`bg-white rounded-2xl shadow-md p-5 flex flex-col justify-between hover:shadow-lg transition-all duration-300 border-l-4 ${colors.border}`}
+                  className={`bg-white rounded-2xl  p-5 flex flex-col justify-between hover:shadow-lg transition-all duration-300 border-l-4 ${colors.border}`}
                 >
                   <div className="flex items-center justify-between">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors.bg} ${colors.text}`}>
@@ -212,7 +212,7 @@ const DashboardAnalytics: React.FC = () => {
           </div>
 
           {/* Sales Chart */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-md p-6 flex flex-col">
+          <div className="lg:col-span-2 bg-white rounded-2xl  p-6 flex flex-col">
             <h2 className="text-xl font-bold text-gray-900 mb-4">{t('dashboard.weekly_sales')}</h2>
             <div className="flex-1 min-h-[160px] md:min-h-[300px]">
               <canvas ref={chartRef} className="w-full h-56 md:h-72" />

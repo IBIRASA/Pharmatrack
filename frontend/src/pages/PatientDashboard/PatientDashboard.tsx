@@ -130,7 +130,7 @@ const PatientDashboardApp: React.FC = () => {
               onSearchMedicine={() => setActiveView("search")}
               onFindNearby={() => setActiveView("nearby")}
             />
-        <div className="bg-white rounded-xl shadow-sm p-8">
+        <div className="bg-white rounded-xl  p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('patient.how.title')}</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
@@ -167,14 +167,14 @@ const PatientDashboardApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white  border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <img
                 src={logo}
                 alt="PharmaTrack logo"
-                className="w-10 h-10 rounded-md object-contain shadow-md" 
+                className="w-10 h-10 rounded-md object-contain " 
               />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">PharmaTrack</h1>
@@ -201,7 +201,7 @@ const PatientDashboardApp: React.FC = () => {
               </div>
               <button
                 onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 font-semibold shadow-md transition-all"
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 font-semibold  transition-all"
               >
                 <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline">{t('nav.logout')}</span>
@@ -211,7 +211,7 @@ const PatientDashboardApp: React.FC = () => {
         </div>
       </header>
 
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="bg-white border-b border-gray-200 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex gap-2 overflow-x-auto">
               <button

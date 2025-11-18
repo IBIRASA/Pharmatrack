@@ -68,12 +68,12 @@ const PatientSettings: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-linear-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-lg">
+      <div className="bg-linear-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white">
         <h2 className="text-3xl font-bold mb-2">{t('patient.settings.title')}</h2>
         <p className="text-purple-50">{t('patient.settings.subtitle')}</p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
         <form onSubmit={handleSaveProfile} className="space-y-6">
           {/* Profile Info */}
           <div>
