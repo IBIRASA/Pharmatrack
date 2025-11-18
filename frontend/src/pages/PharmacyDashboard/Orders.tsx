@@ -159,7 +159,7 @@ export default function Orders() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center gap-4">
           <span className="text-sm font-semibold text-gray-700">{t('orders.filter.label')}</span>
           <div className="flex gap-2">
@@ -169,7 +169,7 @@ export default function Orders() {
                 onClick={() => setFilter(status)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filter === status
-                    ? 'bg-green-600 text-white shadow-md'
+                    ? 'bg-green-600 text-white '
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -190,7 +190,7 @@ export default function Orders() {
 
       {/* Orders List */}
       {filteredOrders.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-gray-900 mb-2">{t('orders.empty.title')}</h3>
           <p className="text-gray-600">
@@ -198,7 +198,7 @@ export default function Orders() {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl  border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
@@ -365,23 +365,23 @@ export default function Orders() {
       )}
       {orders.length > 0 && (
         <div className="grid grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl  border border-gray-200 p-6">
             <p className="text-sm text-gray-600 mb-1">Total Orders</p>
             <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
           </div>
-          <div className="bg-yellow-50 rounded-xl shadow-sm border border-yellow-200 p-6">
+          <div className="bg-yellow-50 rounded-xl  border border-yellow-200 p-6">
             <p className="text-sm text-yellow-700 mb-1">Pending</p>
             <p className="text-2xl font-bold text-yellow-800">
               {orders.filter(o => (canonicalStatus(o.status) === 'pending')).length}
             </p>
           </div>
-          <div className="bg-green-50 rounded-xl shadow-sm border border-green-200 p-6">
+          <div className="bg-green-50 rounded-xl  border border-green-200 p-6">
             <p className="text-sm text-green-700 mb-1">Completed</p>
             <p className="text-2xl font-bold text-green-800">
               {orders.filter(o => (canonicalStatus(o.status) === 'completed')).length}
             </p>
           </div>
-          <div className="bg-red-50 rounded-xl shadow-sm border border-red-200 p-6">
+          <div className="bg-red-50 rounded-xl  border border-red-200 p-6">
             <p className="text-sm text-red-700 mb-1">Cancelled</p>
             <p className="text-2xl font-bold text-red-800">
               {orders.filter(o => (canonicalStatus(o.status) === 'cancelled')).length}

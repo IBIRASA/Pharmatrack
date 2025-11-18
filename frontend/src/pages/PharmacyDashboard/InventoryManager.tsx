@@ -210,7 +210,7 @@ export default function InventoryManager() {
       </div>
 
       {/* Desktop / Tablet: table view */}
-      <div className="hidden md:block bg-white shadow rounded-lg overflow-x-auto">
+      <div className="hidden md:block bg-white rounded-lg overflow-x-auto">
         <table className="min-w-full divide-y">
           <thead className="bg-gray-50">
             <tr>
@@ -263,7 +263,7 @@ export default function InventoryManager() {
       {/* Mobile: stacked card list */}
       <div className="md:hidden space-y-3">
         {pageItems.map((m) => (
-          <div key={m.id} className="bg-white shadow rounded-lg p-4">
+          <div key={m.id} className="bg-white rounded-lg p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
                 <div className="text-sm font-medium text-gray-900">{m.name}</div>

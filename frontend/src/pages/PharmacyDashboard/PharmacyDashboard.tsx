@@ -28,7 +28,7 @@ export default function PharmacyDashboard() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Left: Logo + Hamburger */}

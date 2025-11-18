@@ -71,14 +71,18 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4 py-12" data-aos="zoom-out" >
-      <div className="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-lg shadow-2xl rounded-3xl p-8 border border-gray-100">
+      <div className="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-lg rounded-3xl p-8 border border-gray-100">
         {/* Logo */}
         <div className="text-center mb-4">
-          <img
-            src={logo}
-            alt={t('alt.logo') || 'PharmaFinder logo'}
-            className="w-20 h-20 mx-auto rounded-full object-contain shadow-md"  data-aos="zoom-out" 
-          />
+        <Link to="/">
+  <img
+    src={logo}
+    alt={t('alt.logo') || 'PharmaFinder logo'}
+    className="w-20 h-20 mx-auto rounded-full object-contain "  
+    data-aos="zoom-out" 
+  />
+</Link>
+
         </div>
 
         {/* Heading */}
@@ -152,7 +156,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 text-white py-3 px-4 rounded-xl hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold flex items-center justify-center gap-2 transition-colors duration-300 shadow-md hover:shadow-lg"
+            className="w-full bg-green-600 text-white py-3 px-4 rounded-xl hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold flex items-center justify-center gap-2 transition-colors duration-300  hover:shadow-lg"
           >
             {loading ? (
               <>

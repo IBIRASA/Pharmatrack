@@ -181,7 +181,7 @@ export default function MedicineSearch() {
       </div>
 
       {/* Search Bar */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl  border border-gray-200 p-6">
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="flex gap-3">
             <div className="flex-1 relative">
@@ -232,7 +232,7 @@ export default function MedicineSearch() {
           <p className="text-gray-600 font-medium">{t('medicine_search.searching')}</p>
         </div>
       ) : searched && results.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+        <div className="bg-white rounded-xl  border border-gray-200 p-12 text-center">
           <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Package className="w-10 h-10 text-gray-400" />
           </div>
@@ -257,13 +257,13 @@ export default function MedicineSearch() {
           {Object.entries(groupedByPharmacy).map(([pharmacyId, data]) => (
             <div
               key={pharmacyId}
-              className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow"
+              className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow"
             >
               {/* Pharmacy Header */}
               <div className="bg-linear-to-r from-green-500 to-blue-500 p-6 text-white">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4 flex-1">
-                    <div className="bg-white text-green-600 w-14 h-14 rounded-xl flex items-center justify-center font-bold text-2xl shadow-lg flex-shrink-0">
+                    <div className="bg-white text-green-600 w-14 h-14 rounded-xl flex items-center justify-center font-bold text-2xl flex-shrink-0">
                       {data.pharmacy_name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -275,14 +275,14 @@ export default function MedicineSearch() {
                       <div className="flex flex-wrap gap-3">
                         <button
                           onClick={() => getDirections(data.pharmacy_name)}
-                          className="bg-white text-green-600 px-5 py-2.5 rounded-lg hover:bg-green-50 font-semibold flex items-center gap-2 text-sm shadow-md transition-all"
+                          className="bg-white text-green-600 px-5 py-2.5 rounded-lg hover:bg-green-50 font-semibold flex items-center gap-2 text-sm  transition-all"
                         >
                           <Navigation className="w-4 h-4" />
                           {t('medicine_search.get_directions')}
                         </button>
                         <a
                           href={`mailto:${data.pharmacy_email}?subject=Medicine Inquiry: ${searchQuery}`}
-                          className="bg-green-700 text-white px-5 py-2.5 rounded-lg hover:bg-green-800 font-semibold flex items-center gap-2 text-sm shadow-md transition-all"
+                          className="bg-green-700 text-white px-5 py-2.5 rounded-lg hover:bg-green-800 font-semibold flex items-center gap-2 text-sm  transition-all"
                         >
                           <Mail className="w-4 h-4" />
                           {t('medicine_search.contact_pharmacy')}
@@ -290,7 +290,7 @@ export default function MedicineSearch() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white text-green-600 px-4 py-2 rounded-full font-bold text-sm shadow-lg flex-shrink-0">
+                  <div className="bg-white text-green-600 px-4 py-2 rounded-full font-bold text-sm  flex-shrink-0">
                     {data.medicines.length} Available
                   </div>
                 </div>
@@ -304,7 +304,7 @@ export default function MedicineSearch() {
                     className="p-6 hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-start gap-4">
-                      <div className="bg-linear-to-br from-green-100 to-blue-100 text-green-700 w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                      <div className="bg-linear-to-br from-green-100 to-blue-100 text-green-700 w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0">
                         <Package className="w-8 h-8" />
                       </div>
                       <div className="flex-1">
