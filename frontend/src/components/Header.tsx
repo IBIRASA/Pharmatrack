@@ -18,7 +18,7 @@ export default function Header() {
 
               <img src={logo} alt={t('alt.logo') || 'PharmaFinder logo'} className="w-10 h-10 object-contain rounded-full" />
             
-            <span className="text-xl font-bold text-gray-900">PharmaFinder</span>
+            <span className="text-xl font-bold text-gray-900">PharmaTrack</span>
           </a>
           <button
             className="md:hidden p-2 rounded-md text-gray-700"
