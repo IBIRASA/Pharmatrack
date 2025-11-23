@@ -1,8 +1,8 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 User = settings.AUTH_USER_MODEL
- 
 
 class Pharmacy(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='pharmacy')
@@ -29,6 +29,16 @@ class Customer(models.Model):
 
     def __str__(self):
         return self.email or self.name or f"Customer {self.pk}"
+class MedicineQuerySet(models.QuerySet):
+    def available_for_patient(self):
+        """
+        Return medicines that are in stock and not expired.
+        Keeps items with expiry_date == None.
+        """
+        today = timezone.localdate()
+        expired_q = models.Q(expiry_date__isnull=False) & models.Q(expiry_date__lt=today)
+        return self.filter(stock_quantity__gt=0).exclude(expired_q)
+
 class Medicine(models.Model):
     pharmacy = models.ForeignKey(User, on_delete=models.CASCADE, related_name='medicines')
     name = models.CharField(max_length=200)
@@ -62,6 +72,8 @@ class Medicine(models.Model):
         self.stock_quantity = self.stock_quantity - qty
         self.save(update_fields=["stock_quantity"])
 
+    # ensure new manager is used so views can call Medicine.objects.available_for_patient()
+    objects = MedicineQuerySet.as_manager()
 
 class Sale(models.Model):
     pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, related_name='sales')
