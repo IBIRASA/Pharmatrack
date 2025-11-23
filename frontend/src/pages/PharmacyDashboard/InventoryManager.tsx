@@ -331,7 +331,7 @@ export default function InventoryManager() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-end gap-2">
+              <div className="flex flex-col items-center gap-2">
                 <button
                   onClick={() => { setSelectedMed(m); setSellOpen(true); }}
                   className="px-3 py-1 bg-green-600 text-white rounded-md text-sm"

@@ -5,7 +5,7 @@ type Lang = "en" | "fr" | "rw";
 const translations: Record<Lang, Record<string, string>> = {
   en: {
     // About Section
-    "about.title": "About MedFinder",
+    "about.title": "About Pharmatrack",
     "about.subtitle": "Making it easier for patients in Rwanda to access medicines",
     "about.1.title": "Locate Pharmacies",
     "about.1.desc": "Find nearby pharmacies quickly and easily.",
@@ -31,7 +31,7 @@ const translations: Record<Lang, Record<string, string>> = {
     "footer.contact": "Contact",
     "footer.privacy": "Privacy Policy",
     "footer.terms": "Terms of Service",
-    "footer.copy": "© 2025 PharmFinder. All rights reserved.",
+    "footer.copy": "© 2025 PharmTrack. All rights reserved.",
     "auth.login.title": "Sign In",
     "auth.login.subtitle": "Sign in to your {app} account",
     "auth.login.email": "Email Address",
@@ -372,7 +372,7 @@ const translations: Record<Lang, Record<string, string>> = {
   },
   fr: {
     // About Section
-    "about.title": "À propos de MedFinder",
+    "about.title": "À propos de Pharmatrack",
     "about.subtitle": "Faciliter l'accès aux médicaments pour les patients au Rwanda",
     "about.1.title": "Localiser les Pharmacies",
     "about.1.desc": "Trouvez rapidement et facilement les pharmacies à proximité.",
@@ -684,7 +684,7 @@ const translations: Record<Lang, Record<string, string>> = {
   },
   rw: {
     // About Section
-    "about.title": "Byerekeye MedFinder",
+    "about.title": "Byerekeye Pharmatrack",
     "about.subtitle": "Gufasha abarwayi mu Rwanda kugira ubworoherwo bwo kubona imiti",
     "about.1.title": "Shaka Amavuriro",
     "about.1.desc": "Shaka amavuriro hafi nawe byihuse kandi byoroshye.",
