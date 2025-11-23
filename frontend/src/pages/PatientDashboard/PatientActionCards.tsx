@@ -72,16 +72,6 @@ export default function PatientActionCards({
           </div>
         </button>
 
-        {/* Contact Pharmacy button: only enabled when a pharmacy is provided */}
-        <button
-          className={`btn-contact px-4 py-3 rounded ${pharmacy ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
-          onClick={() => openContactModal(pharmacy)}
-          disabled={!pharmacy}
-          aria-disabled={!pharmacy}
-          title={pharmacy ? `Contact ${pharmacy.name}` : 'Select a pharmacy to contact'}
-        >
-          Contact Pharmac
-        </button>
       </div>
 
       <ContactPharmacyModal
