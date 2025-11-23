@@ -261,49 +261,45 @@ export default function InventoryManager() {
 
       {/* Desktop / Tablet: table view */}
       <div className="hidden md:block bg-white rounded-lg overflow-x-auto">
-        <table className="min-w-full divide-y">
+        {/* use table-fixed and fixed-width actions column so buttons aren't pushed away */}
+        <table className="min-w-full divide-y table-fixed">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.medicine')}</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.category')}</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.price')}</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.stock')}</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Expiry</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.actions')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-2/5">{t('table.header.medicine')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-1/6">{t('table.header.category')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-1/6">{t('table.header.price')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-1/12">{t('table.header.stock')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-1/6">Expiry</th>
+              <th className="px-2 py-3 text-right text-sm font-medium text-gray-700 w-36">{t('table.header.actions')}</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y">
             {pageItems.map((m) => (
               <tr key={m.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <div className="text-sm font-medium text-gray-900">{m.name}</div>
-                  <div className="text-xs text-gray-500">{m.generic_name}</div>
+                <td className="px-4 py-4">
+                  <div className="text-sm font-medium text-gray-900 truncate max-w-[320px]">{m.name}</div>
+                  <div className="text-xs text-gray-500 truncate max-w-[320px]">{m.generic_name}</div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-600">{m.category}</td>
-                <td className="px-6 py-4 text-sm text-gray-800">${parseFloat(m.unit_price).toFixed(2)}</td>
-                <td className={`px-6 py-4 text-sm ${m.stock_quantity <= m.minimum_stock ? 'text-orange-600 font-semibold' : 'text-gray-700'}`}>
+                <td className="px-4 py-4 text-sm text-gray-600 truncate">{m.category}</td>
+                <td className="px-4 py-4 text-sm text-gray-800">${parseFloat(m.unit_price).toFixed(2)}</td>
+                <td className={`px-4 py-4 text-sm ${m.stock_quantity <= m.minimum_stock ? 'text-orange-600 font-semibold' : 'text-gray-700'}`}>
                   {m.stock_quantity}
                 </td>
-                <td className="px-6 py-4 text-sm">
+                <td className="px-4 py-4 text-sm">
                   {getExpiryBadge(m)}
                 </td>
-                <td className="px-6 py-4 text-sm">
-                  <div className="flex items-center gap-2 justify-end">
+                <td className="px-2 py-4 text-sm w-36">
+                  <div className="flex items-center gap-1 justify-end">
                     <button
-                      onClick={() => {
-                        setSelectedMed(m);
-                        setSellOpen(true);
-                      }}
-                      className="px-3 py-1 bg-green-600 text-white rounded-md text-sm"
+                      onClick={() => { setSelectedMed(m); setSellOpen(true); }}
+                      className="px-2 py-1 bg-green-600 text-white rounded text-sm"
                     >
                       {t('actions.sell')}
                     </button>
-
-                    <button onClick={() => handleEdit(m)} className="p-2 rounded-md hover:bg-gray-100">
+                    <button onClick={() => handleEdit(m)} className="p-1.5 rounded-md hover:bg-gray-100" title="Edit">
                       <Edit className="w-4 h-4 text-gray-700" />
                     </button>
-
-                    <button onClick={() => handleDelete(m)} className="p-2 rounded-md hover:bg-gray-100">
+                    <button onClick={() => handleDelete(m)} className="p-1.5 rounded-md hover:bg-gray-100" title="Delete">
                       <Trash2 className="w-4 h-4 text-red-600" />
                     </button>
                   </div>
