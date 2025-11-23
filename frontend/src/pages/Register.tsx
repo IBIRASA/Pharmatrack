@@ -32,6 +32,14 @@ export default function Register() {
       return;
     }
 
+    // Require phone for pharmacy registrations
+    if (formData.user_type === "pharmacy") {
+      if (!formData.phone || !formData.phone.trim()) {
+        setError(t('auth.register.phone_required') || 'Phone number is required for pharmacy registration');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       // send only relevant fields to API
@@ -240,7 +248,7 @@ export default function Register() {
               <input
                 id="phone"
                 type="tel"
-                required
+                required={formData.user_type === "pharmacy"}
                 disabled={loading}
                 value={formData.phone}
                 onChange={(e) =>
@@ -248,8 +256,12 @@ export default function Register() {
                 }
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 transition-all"
                 placeholder={t('auth.register.placeholder.phone')}
+                aria-required={formData.user_type === "pharmacy"}
               />
             </div>
+            {formData.user_type === "pharmacy" && (
+              <p className="text-xs text-gray-500 mt-1">Phone is required for pharmacy accounts.</p>
+            )}
           </div>
 
           {/* Address (Only for Pharmacy) */}

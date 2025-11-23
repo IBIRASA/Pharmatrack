@@ -16,7 +16,7 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
   const [genericName, setGenericName] = useState('');
   const [manufacturer, setManufacturer] = useState('');
   const [category, setCategory] = useState('');
-  const [amount, setDosage] = useState('');
+  const [dosage, setDosage] = useState('');
   const [unitPrice, setUnitPrice] = useState('0.00');
   const [stockQuantity, setStockQuantity] = useState<number>(0);
   const [minimumStock, setMinimumStock] = useState<number>(0);
@@ -74,7 +74,7 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
         generic_name: genericName.trim() || undefined,
         manufacturer: manufacturer.trim() || undefined,
         category: category.trim() || undefined,
-        amount: amount.trim() || undefined,
+        dosage: dosage.trim() || undefined,
         unit_price: Number(unitPrice).toFixed(2),
         stock_quantity: Number(stockQuantity),
         minimum_stock: Number(minimumStock),
@@ -176,7 +176,7 @@ const AddMedicineModal: React.FC<AddMedicineModalProps> = ({ open, onClose, onCr
 
             <div>
               <label className="block text-sm font-medium text-gray-700">{t('modals.add_medicine.dosage_label')}</label>
-              <input value={amount} onChange={(e) => setDosage(e.target.value)} placeholder="e.g., 500 mg" className="mt-1 block w-full px-3 py-2 border rounded border-gray-300" />
+              <input value={dosage} onChange={(e) => setDosage(e.target.value)} placeholder="e.g., 500 mg" className="mt-1 block w-full px-3 py-2 border rounded border-gray-300" />
             </div>
           </div>
 

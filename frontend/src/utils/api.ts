@@ -119,6 +119,11 @@ export interface Medicine {
   expiry_date: string;
   description: string;
   is_low_stock?: boolean;
+  is_expiring_soon?: boolean;
+  is_expired?: boolean;
+  days_until_expiry?: number;
+  expiration_level?: 'normal' | 'warning' | 'critical' | 'expired';
+  expiration_message?: string;
 }
 
 export interface Customer {
@@ -206,6 +211,11 @@ export const updateCurrentUser = async (data: Partial<User> & Record<string, any
 // Medicine/Inventory APIs
 export const getMedicines = async (params?: { search?: string; category?: string; latitude?: number; longitude?: number }): Promise<Medicine[]> => {
   const response = await api.get<Medicine[]>('/inventory/medicines/', { params });
+  return response.data;
+};
+
+export const getExpiringMedicines = async (): Promise<Medicine[]> => {
+  const response = await api.get<Medicine[]>('/inventory/medicines/expiring-soon/');
   return response.data;
 };
 

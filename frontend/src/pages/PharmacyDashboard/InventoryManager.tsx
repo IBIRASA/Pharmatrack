@@ -3,7 +3,7 @@ import { useTranslation } from '../../i18n';
 import { Edit, Trash2, ChevronLeft, ChevronRight, Search, Plus } from 'lucide-react';
 import SellMedicineModal from '../../components/modals/SellMedicineModal';
 import AddMedicineModal from '../../components/modals/AddMedicineModal';
-import { getMedicines, updateMedicine, deleteMedicine } from '../../utils/api';
+import { getMedicines, updateMedicine, deleteMedicine, getExpiringMedicines } from '../../utils/api';
 import { showError } from '../../utils/notifications';
 import EditMedicineModal from '../../components/modals/EditMedicineModal';
 
@@ -29,6 +29,7 @@ export default function InventoryManager() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showLowStock, setShowLowStock] = useState(false);
+  const [showExpiring, setShowExpiring] = useState(false);
   const [sellOpen, setSellOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [selectedMed, setSelectedMed] = useState<Medicine | null>(null);
@@ -41,7 +42,12 @@ export default function InventoryManager() {
   const loadMedicines = async () => {
     setLoading(true);
     try {
-      const data = await getMedicines();
+      let data;
+      if (showExpiring) {
+        data = await getExpiringMedicines();
+      } else {
+        data = await getMedicines();
+      }
       setMedicines(data);
       setFiltered(data);
     } catch (err) {
@@ -50,10 +56,9 @@ export default function InventoryManager() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadMedicines();
-  }, []);
+  }, [showExpiring]);
 
   const handleEdit = (m: Medicine) => {
     setEditingMed(m);
@@ -167,6 +172,41 @@ export default function InventoryManager() {
   const pageItems = filtered.slice(start, start + pageSize);
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
 
+  // Helper function to get expiry status badge
+  const getExpiryBadge = (medicine: Medicine) => {
+    if (!medicine.expiry_date) return null;
+    
+    const today = new Date();
+    const expiryDate = new Date(medicine.expiry_date);
+    const daysUntilExpiry = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    let badgeClass = '';
+    let badgeText = '';
+    
+    if (daysUntilExpiry < 0) {
+      badgeClass = 'bg-red-100 text-red-800';
+      badgeText = 'Expired';
+    } else if (daysUntilExpiry <= 7) {
+      badgeClass = 'bg-red-100 text-red-800';
+      badgeText = `${daysUntilExpiry}d left`;
+    } else if (daysUntilExpiry <= 30) {
+      badgeClass = 'bg-yellow-100 text-yellow-800';
+      badgeText = `${daysUntilExpiry}d left`;
+    } else if (daysUntilExpiry <= 60) {
+      badgeClass = 'bg-orange-100 text-orange-800';
+      badgeText = `${daysUntilExpiry}d left`;
+    } else {
+      badgeClass = 'bg-green-100 text-green-800';
+      badgeText = expiryDate.toLocaleDateString();
+    }
+    
+    return (
+      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${badgeClass}`}>
+        {badgeText}
+      </span>
+    );
+  };
+
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header: stacks on small screens */}
@@ -206,6 +246,16 @@ export default function InventoryManager() {
             />
             <span className="text-sm text-gray-600">{t('filter.low_stock')}</span>
           </label>
+
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={showExpiring}
+              onChange={(e) => setShowExpiring(e.target.checked)}
+              className="w-4 h-4"
+            />
+            <span className="text-sm text-gray-600">Expiring Soon</span>
+          </label>
         </div>
       </div>
 
@@ -218,6 +268,7 @@ export default function InventoryManager() {
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.category')}</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.price')}</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.stock')}</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Expiry</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">{t('table.header.actions')}</th>
             </tr>
           </thead>
@@ -232,6 +283,9 @@ export default function InventoryManager() {
                 <td className="px-6 py-4 text-sm text-gray-800">${parseFloat(m.unit_price).toFixed(2)}</td>
                 <td className={`px-6 py-4 text-sm ${m.stock_quantity <= m.minimum_stock ? 'text-orange-600 font-semibold' : 'text-gray-700'}`}>
                   {m.stock_quantity}
+                </td>
+                <td className="px-6 py-4 text-sm">
+                  {getExpiryBadge(m)}
                 </td>
                 <td className="px-6 py-4 text-sm">
                   <div className="flex items-center gap-2 justify-end">
@@ -271,6 +325,9 @@ export default function InventoryManager() {
                 <div className="mt-2 text-sm text-gray-800">Price: ${parseFloat(m.unit_price).toFixed(2)}</div>
                 <div className={`mt-1 text-sm ${m.stock_quantity <= m.minimum_stock ? 'text-orange-600 font-semibold' : 'text-gray-700'}`}>
                   Stock: {m.stock_quantity}
+                </div>
+                <div className="mt-2">
+                  {getExpiryBadge(m)}
                 </div>
               </div>
 

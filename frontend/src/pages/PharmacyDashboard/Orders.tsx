@@ -149,7 +149,7 @@ export default function Orders() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-linear-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-lg">
+      <div className="bg-linear-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-sm">
         <h2 className="text-3xl font-bold mb-2">{t('orders.title')}</h2>
         <p className="text-green-50">{t('orders.subtitle')}</p>
         <div className="mt-4 flex items-center gap-3">

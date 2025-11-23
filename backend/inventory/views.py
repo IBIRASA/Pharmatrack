@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Q, Sum, Count, F
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, date
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from decimal import Decimal
@@ -198,6 +198,54 @@ def pharmacy_sales(request):
             'customer': {'id': s.customer.id, 'name': s.customer.name} if s.customer else None,
             'sale_date': s.sale_date,
         })
+    return Response(data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def expiring_medicines(request):
+    """Return medicines that are expiring within the next 60 days (2 months)."""
+    user = request.user
+    if user.user_type != 'pharmacy':
+        return Response({'error': 'Pharmacy access only'}, status=403)
+
+    # Calculate date 60 days from now
+    today = date.today()
+    expiry_threshold = today + timedelta(days=60)
+    
+    medicines = Medicine.objects.filter(
+        pharmacy=user,
+        expiry_date__lte=expiry_threshold,
+        expiry_date__gte=today  # Don't include already expired medicines
+    ).order_by('expiry_date')
+
+    data = []
+    for medicine in medicines:
+        days_until_expiry = (medicine.expiry_date - today).days
+        
+        # Categorize expiration level
+        if days_until_expiry <= 0:
+            level = 'expired'
+            message = 'Expired'
+        elif days_until_expiry <= 7:
+            level = 'critical'
+            message = f'Expires in {days_until_expiry} days'
+        elif days_until_expiry <= 30:
+            level = 'warning'
+            message = f'Expires in {days_until_expiry} days'
+        else:
+            level = 'normal'
+            message = f'Expires in {days_until_expiry} days'
+
+        serializer_data = MedicineSerializer(medicine).data
+        serializer_data.update({
+            'days_until_expiry': days_until_expiry,
+            'expiration_level': level,
+            'expiration_message': message,
+            'is_expiring_soon': True
+        })
+        data.append(serializer_data)
+
     return Response(data)
 
 
