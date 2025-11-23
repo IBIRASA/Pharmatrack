@@ -3,16 +3,17 @@ import math
 from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import Q, Sum, Count, F
 from django.utils import timezone
-from datetime import timedelta, date
 from django.shortcuts import get_object_or_404
+from django.db.models import Q, Sum, F
+from inventory.models import Medicine
 from django.db import transaction
 from decimal import Decimal
+from datetime import timedelta, date
 
-from .models import Medicine, Order,Pharmacy,Sale,OrderItem
+from .models import Order,Pharmacy,Sale,OrderItem
 from .models import Pharmacy as InventoryPharmacy
-from .serializers import MedicineSerializer, OrderSerializer,SellRequestSerializer
+from .serializers import MedicineSerializer, OrderSerializer, SellRequestSerializer
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -342,35 +343,47 @@ def customers_list(request):
 @api_view(['GET', 'POST'])
 def medicine_list(request):
     if request.method == 'GET':
+        today = timezone.localdate()
+
         if not request.user.is_authenticated:
-            medicines = Medicine.objects.filter(stock_quantity__gt=0)
+            medicines = Medicine.objects.filter(
+                stock_quantity__gt=0
+            ).filter(
+                Q(expiry_date__isnull=True) | Q(expiry_date__gte=today)
+            )
             search = request.query_params.get('search', '')
             if search:
                 medicines = medicines.filter(
-                    Q(name__icontains=search) | 
+                    Q(name__icontains=search) |
                     Q(generic_name__icontains=search) |
                     Q(category__icontains=search)
                 )
+
         elif request.user.user_type == 'patient':
-            medicines = Medicine.objects.filter(stock_quantity__gt=0)
+            medicines = Medicine.objects.filter(
+                stock_quantity__gt=0
+            ).filter(
+                Q(expiry_date__isnull=True) | Q(expiry_date__gte=today)
+            )
             search = request.query_params.get('search', '')
             if search:
                 medicines = medicines.filter(
-                    Q(name__icontains=search) | 
+                    Q(name__icontains=search) |
                     Q(generic_name__icontains=search) |
                     Q(category__icontains=search)
                 )
             print(f"Patient search: '{search}', Found: {medicines.count()} medicines")  
+
         else:
             medicines = Medicine.objects.filter(pharmacy=request.user)
             search = request.query_params.get('search', '')
             if search:
                 medicines = medicines.filter(
-                    Q(name__icontains=search) | 
+                    Q(name__icontains=search) |
                     Q(generic_name__icontains=search)
                 )
             print(f"Pharmacy view: Found {medicines.count()} medicines")  
-        
+
         serializer = MedicineSerializer(medicines, many=True)
         data = serializer.data
         try:
