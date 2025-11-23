@@ -1,6 +1,8 @@
-import React from 'react';
-
 type Pharmacy = {
+  mobile: string | null | undefined;
+  tel: string | null | undefined;
+  phone_number: string | null | undefined;
+  contact_phone: string | null | undefined;
   id?: number;
   name?: string;
   email?: string | null;
@@ -18,7 +20,7 @@ export default function ContactPharmacyModal({ open, onClose, pharmacy }: Props)
   if (!open || !pharmacy) return null;
 
   const email = pharmacy.email || 'Not provided';
-  const phone = pharmacy.phone || 'Not provided';
+  const phone = pharmacy.phone || pharmacy.contact_phone || pharmacy.phone_number || pharmacy.tel || pharmacy.mobile || 'Not provided';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">

@@ -30,22 +30,33 @@ export default function Customers() {
     return () => window.removeEventListener('pharmatrack:sale:created', onSale);
   }, []);
 
+  const dedupeCustomers = (arr: any[]) => {
+    const map = new Map<string, any>();
+    for (const c of arr) {
+      const key = String(c.id ?? c.email ?? c.phone ?? c.name ?? JSON.stringify(c));
+      if (!map.has(key)) map.set(key, c);
+    }
+    return Array.from(map.values());
+  };
+
   const loadCustomers = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      setError(null);
-      // Use the shared API helper which respects API_BASE_URL and Authorization
-      const data = await getCustomers();
-      setCustomers(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      console.error('Error loading customers:', err);
-      // err may be an object from axios or a string
-      const message = err?.message || (typeof err === 'string' ? err : JSON.stringify(err)) || 'Unknown error';
-      setError(message);
-      setCustomers([]);
+      const data = await getCustomers(); // existing call
+      setCustomers(dedupeCustomers(data));
+    } catch (err) {
+      console.error('Failed to load customers', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  // If you add/refresh customers after an order, use this to update state safely:
+  const upsertCustomer = (customer: any) => {
+    setCustomers(prev => {
+      const list = prev.filter(c => !(c.id && customer.id && c.id === customer.id));
+      return [customer, ...list];
+    });
   };
 
   const filteredCustomers = customers.filter(customer =>

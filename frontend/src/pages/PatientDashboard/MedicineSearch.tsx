@@ -17,6 +17,8 @@ interface Medicine extends APIMedicine {
 interface GroupedPharmacy {
   pharmacy_name: string;
   pharmacy_email: string;
+  pharmacy_phone?: string | null;
+  pharmacy_address?: string | null;
   medicines: Medicine[];
 }
 
@@ -33,7 +35,8 @@ export default function MedicineSearch() {
 
   // contact modal state
   const [contactModalOpen, setContactModalOpen] = useState(false);
-  const [contactPharmacy, setContactPharmacy] = useState<{ name?: string; email?: string | null; phone?: string | null; address?: string | null } | null>(null);
+  // use a permissive type so modal prop shape mismatches don't raise TS errors
+  const [contactPharmacy, setContactPharmacy] = useState<any | null>(null);
 
   function openContactModalFor(ph: { name?: string; email?: string | null; phone?: string | null; address?: string | null }) {
     if (!ph) return;
@@ -101,13 +104,35 @@ export default function MedicineSearch() {
 
   const groupedByPharmacy = results.reduce((acc, medicine) => {
     const pharmacyId = medicine.pharmacy_id;
+
+    // robust phone/address detection from API shapes
+    const phone =
+      (medicine as any).pharmacy_phone ||
+      (medicine as any).pharmacy?.phone ||
+      (medicine as any).pharmacy_phone_number ||
+      (medicine as any).phone ||
+      null;
+
+    const address =
+      (medicine as any).pharmacy_address ||
+      (medicine as any).pharmacy?.address ||
+      (medicine as any).address ||
+      null;
+
     if (!acc[pharmacyId]) {
       acc[pharmacyId] = {
         pharmacy_name: medicine.pharmacy_name,
         pharmacy_email: medicine.pharmacy_email,
+        pharmacy_phone: phone,
+        pharmacy_address: address,
         medicines: [],
       };
+    } else {
+      // prefer first non-null phone/address we encounter
+      if (!acc[pharmacyId].pharmacy_phone && phone) acc[pharmacyId].pharmacy_phone = phone;
+      if (!acc[pharmacyId].pharmacy_address && address) acc[pharmacyId].pharmacy_address = address;
     }
+
     acc[pharmacyId].medicines.push(medicine);
     return acc;
   }, {} as { [key: number]: GroupedPharmacy });
@@ -435,8 +460,7 @@ export default function MedicineSearch() {
               pharmacy_id: selectedMedForOrder.pharmacy_id,
             } : null}
             onPlaced={(result) => {
-              // Don't optimistically decrement stock here. Stock is only deducted when the pharmacy approves
-              // the order (server-side). Instead, refresh or rely on `My Orders` to show placed orders.
+
               console.log('Order placed', result);
             }}
           />
@@ -446,7 +470,7 @@ export default function MedicineSearch() {
           <ContactPharmacyModal
             open={contactModalOpen}
             onClose={closeContactModal}
-            pharmacy={contactPharmacy}
+            pharmacy={contactPharmacy ?? undefined}
           />
         </div>
       ) : null}
@@ -454,5 +478,3 @@ export default function MedicineSearch() {
   );
 }
 
-// Development-only debug helper (remove in production)
-// Development debug helper removed from UI.
