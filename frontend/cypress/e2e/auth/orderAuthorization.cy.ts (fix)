@@ -1,0 +1,11 @@
+const { expect } = require('chai');
+
+describe('Order Authorization - Patient Only', () => {
+    it('test_place_order_requires_patient - Patient can place order successfully', () => {
+        cy.visit('/order'); // Adjust the URL as necessary
+        cy.get('input[placeholder*="phone"], input[type="tel"]').should('exist');
+        cy.get('input[placeholder*="phone"], input[type="tel"]').type('1234567890');
+        cy.get('button[type="submit"]').click();
+        cy.url().should('include', '/order-success'); // Adjust the expected URL as necessary
+    });
+});

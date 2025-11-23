@@ -53,16 +53,15 @@ const PatientOrdersModal: React.FC<PatientOrdersModalProps> = ({ open, onClose, 
 
   const handleConfirm = async (orderId: number) => {
     try {
-      // send customer_name to backend when available so pharmacy notification includes it
+      
       const order = orders.find((o) => o.id === orderId);
       const customerName = order?.customer_name || '';
       await confirmOrderDelivery(orderId, { customer_name: customerName });
-      // refresh UI: backend sets status to 'completed' when delivery is confirmed
+
       setOrders((prev) => prev.map(o => o.id === orderId ? { ...o, status: 'completed' } : o));
-      // dispatch toast event so the top-level dashboard can show a non-blocking toast
+   
       try { showSuccess(t('orders.delivery_confirmed') || 'Delivery confirmed'); } catch {}
-      // close modal after confirming
-      onClose();
+      // close modal after confirming  onClose();
     } catch (err: any) {
       const msg = err?.detail || err?.message || 'Failed to confirm delivery';
       try { showError(msg); } catch {}

@@ -6,6 +6,7 @@ import CreateOrderModal from '../../components/modals/CreateOrderModal';
 import PatientOrdersModal from '../../components/modals/PatientOrdersModal';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../i18n';
+import ContactPharmacyModal from '../../components/modals/ContactPharmacyModal'; // <-- added
 
 interface Medicine extends APIMedicine {
   pharmacy_name: string;
@@ -29,6 +30,21 @@ export default function MedicineSearch() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string>('');
+
+  // contact modal state
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+  const [contactPharmacy, setContactPharmacy] = useState<{ name?: string; email?: string | null; phone?: string | null; address?: string | null } | null>(null);
+
+  function openContactModalFor(ph: { name?: string; email?: string | null; phone?: string | null; address?: string | null }) {
+    if (!ph) return;
+    setContactPharmacy(ph);
+    setContactModalOpen(true);
+  }
+
+  function closeContactModal() {
+    setContactModalOpen(false);
+    setContactPharmacy(null);
+  }
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -164,7 +180,7 @@ export default function MedicineSearch() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-lg relative">
+      <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-sm relative">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-3xl font-bold mb-2">{t('medicine_search.title')}</h2>
@@ -183,8 +199,8 @@ export default function MedicineSearch() {
       {/* Search Bar */}
       <div className="bg-white rounded-xl  border border-gray-200 p-6">
         <form onSubmit={handleSearch} className="space-y-4">
-          <div className="flex gap-3">
-            <div className="flex-1 relative">
+          <div className="flex gap-3 ">
+            <div className="flex-1 relative ">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
@@ -194,13 +210,13 @@ export default function MedicineSearch() {
                   setSearchQuery(e.target.value);
                   setError('');
                 }}
-                className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-lg"
+                className="w-full pl-12 pr-4 py-4 border-2 border-gray-400 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-lg"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl"
+              className="bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold flex items-center gap-2 transition-all shadow-sm hover:shadow-xl"
             >
               {loading ? (
                 <>
@@ -255,10 +271,7 @@ export default function MedicineSearch() {
 
           {/* Pharmacy Cards */}
           {Object.entries(groupedByPharmacy).map(([pharmacyId, data]) => (
-            <div
-              key={pharmacyId}
-              className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow"
-            >
+            <div key={pharmacyId} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
               {/* Pharmacy Header */}
               <div className="bg-linear-to-r from-green-500 to-blue-500 p-6 text-white">
                 <div className="flex items-start justify-between">
@@ -274,22 +287,30 @@ export default function MedicineSearch() {
                       </div>
                       <div className="flex flex-wrap gap-3">
                         <button
+                          onClick={() => openContactModalFor({
+                            name: data.pharmacy_name,
+                            email: data.pharmacy_email || null,
+                            phone: (data as any).pharmacy_phone ?? null,
+                            address: (data as any).pharmacy_address ?? null,
+                          })}
+                          className="bg-green-700 text-white px-5 py-2.5 rounded-lg hover:bg-green-800 font-semibold flex items-center gap-2 text-sm transition-all"
+                          title={`Contact ${data.pharmacy_name}`}
+                        >
+                          <Mail className="w-4 h-4" />
+                          Contact Pharmacy
+                        </button>
+
+                        <button
                           onClick={() => getDirections(data.pharmacy_name)}
-                          className="bg-white text-green-600 px-5 py-2.5 rounded-lg hover:bg-green-50 font-semibold flex items-center gap-2 text-sm  transition-all"
+                          className="bg-white text-green-600 px-5 py-2.5 rounded-lg hover:bg-green-50 font-semibold flex items-center gap-2 text-sm transition-all"
                         >
                           <Navigation className="w-4 h-4" />
                           {t('medicine_search.get_directions')}
                         </button>
-                        <a
-                          href={`mailto:${data.pharmacy_email}?subject=Medicine Inquiry: ${searchQuery}`}
-                          className="bg-green-700 text-white px-5 py-2.5 rounded-lg hover:bg-green-800 font-semibold flex items-center gap-2 text-sm  transition-all"
-                        >
-                          <Mail className="w-4 h-4" />
-                          {t('medicine_search.contact_pharmacy')}
-                        </a>
                       </div>
                     </div>
                   </div>
+
                   <div className="bg-white text-green-600 px-4 py-2 rounded-full font-bold text-sm  flex-shrink-0">
                     {data.medicines.length} Available
                   </div>
@@ -420,6 +441,13 @@ export default function MedicineSearch() {
             }}
           />
           <PatientOrdersModal open={ordersOpen} onClose={() => setOrdersOpen(false)} />
+
+          {/* Contact pharmacy modal */}
+          <ContactPharmacyModal
+            open={contactModalOpen}
+            onClose={closeContactModal}
+            pharmacy={contactPharmacy}
+          />
         </div>
       ) : null}
     </div>

@@ -156,7 +156,7 @@ export default function Overview() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-linear-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-lg">
+      <div className="bg-linear-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white shadow-sm">
         <h2 className="text-3xl font-bold mb-2">{t('dashboard.overview.title')}</h2>
         <p className="text-green-50">{t('dashboard.overview.subtitle')}</p>
       </div>
@@ -164,7 +164,7 @@ export default function Overview() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Orders (moved to first for visibility) */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-green-200 p-6 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-teal-100 p-3 rounded-lg">
               <Package className="w-6 h-6 text-teal-600" />
@@ -176,7 +176,7 @@ export default function Overview() {
         </div>
 
         {/* Total Sales */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-green-200 p-6 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-blue-100 p-3 rounded-lg">
               <ShoppingCart className="w-6 h-6 text-blue-600" />
@@ -188,7 +188,7 @@ export default function Overview() {
         </div>
 
         {/* Total Orders */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-green-200 p-6 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-teal-100 p-3 rounded-lg">
               <Package className="w-6 h-6 text-teal-600" />
@@ -200,7 +200,7 @@ export default function Overview() {
         </div>
 
           {/* Open Orders */}
-          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+          <div className="bg-white rounded-xl shadow-sm border border-green-200 p-6 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-yellow-100 p-3 rounded-lg">
                 <AlertTriangle className="w-6 h-6 text-yellow-600" />
@@ -212,7 +212,7 @@ export default function Overview() {
           </div>
 
         {/* Today's Sales */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-green-200 p-6 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-purple-100 p-3 rounded-lg">
               <Calendar className="w-6 h-6 text-purple-600" />
@@ -224,7 +224,7 @@ export default function Overview() {
         </div>
 
         {/* Total Customers */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-green-200 p-6 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-indigo-100 p-3 rounded-lg">
               <Users className="w-6 h-6 text-indigo-600" />
@@ -236,7 +236,7 @@ export default function Overview() {
         </div>
 
         {/* Monthly Revenue */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-green-200 p-6 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-orange-100 p-3 rounded-lg">
               <BarChart3 className="w-6 h-6 text-orange-600" />
@@ -250,7 +250,7 @@ export default function Overview() {
         </div>
 
         {/* Average Order Value */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-green-200 p-6 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-cyan-100 p-3 rounded-lg">
               <TrendingUp className="w-6 h-6 text-cyan-600" />
@@ -264,7 +264,7 @@ export default function Overview() {
         </div>
 
         {/* Monthly Sales */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-green-200 p-6 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-pink-100 p-3 rounded-lg">
               <Package className="w-6 h-6 text-pink-600" />
@@ -276,7 +276,7 @@ export default function Overview() {
         </div>
 
         {/* Low Stock Alert */}
-        <div className="bg-white rounded-xl shadow-md border border-red-200 p-6 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-red-100 p-3 rounded-lg">
               <AlertTriangle className="w-6 h-6 text-red-600" />
@@ -291,7 +291,7 @@ export default function Overview() {
       {/* Recent Activity Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Sales */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-green-200 p-6">
           <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <ShoppingCart className="w-6 h-6 text-green-600" />
             {t('recent.sales.title')}
@@ -322,7 +322,7 @@ export default function Overview() {
         </div>
 
         {/* Top Customers */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-green-200 p-6">
           <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Users className="w-6 h-6 text-blue-600" />
             {t('recent.customers.title')}
@@ -352,7 +352,7 @@ export default function Overview() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-green-200 p-6">
           <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
           <TrendingUp className="w-6 h-6 text-green-600" />
           {t('quick_actions.title')}

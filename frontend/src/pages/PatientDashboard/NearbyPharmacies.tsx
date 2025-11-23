@@ -24,47 +24,79 @@ export default function NearbyPharmacies() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [searchRadius, setSearchRadius] = useState<number>(5); // Default 5km radius
 
-  // Calculate distance between two coordinates using Haversine formula
+  const requestAndFindNearby = () => {
+    setError('');
+    setLoading(true);
+    if (!navigator.geolocation) {
+      setError(t('patient.nearby.geolocation_unsupported'));
+      setLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        console.debug('Geolocation obtained', { lat: loc.lat, lon: loc.lon, accuracy: pos.coords.accuracy });
+        setUserLocation(loc);
+
+        if (typeof pos.coords.accuracy === 'number' && pos.coords.accuracy > 5000) {
+          console.warn('Location accuracy is low (>5km). Browser may be using coarse/IP location or a VPN. Allow high-accuracy GPS or disable VPN for better results.');
+        }
+   
+        findNearbyPharmacies(loc.lat, loc.lon, searchRadius);
+      },
+      (err) => {
+        console.error('Location error:', err);
+        if (err.code === err.PERMISSION_DENIED) {
+          setError(t('patient.nearby.permission_denied'));
+        } else if (err.code === err.TIMEOUT) {
+          setError(t('patient.nearby.request_timeout'));
+        } else {
+          setError(t('patient.nearby.enable_services'));
+        }
+        setLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  };
+
+  
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371; // Earth's radius in km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
+    const a =
       Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c;
-    return Math.round(distance * 10) / 10; // Round to 1 decimal place
+    return distance; 
   };
 
-  // Smart pharmacy search - focuses on truly nearby pharmacies
   const findNearbyPharmacies = async (lat: number, lon: number, radius: number = 5) => {
     setLoading(true);
     setError('');
     setPharmacies([]);
     
-  // Debug: user location logged during development. Removed to reduce console noise.
     
     try {
       let foundPharmacies: PharmacyItem[] = [];
 
-      // Method 1: Try OpenStreetMap (free, no API key needed)
       try {
         foundPharmacies = await fetchFromOpenStreetMap(lat, lon, radius);
-  // Found pharmacies from OSM: logging removed.
       } catch (osmError) {
-  // OSM search failed: logging removed.
+
       }
       if (foundPharmacies.length < 3) {
         try {
           const broaderResults = await fetchFromOpenStreetMap(lat, lon, radius * 2);
-          // Filter to only include very close pharmacies from broader search
+         
           const closePharmacies = broaderResults.filter(pharmacy => pharmacy.distance <= radius);
           foundPharmacies = [...foundPharmacies, ...closePharmacies];
-          // Added close pharmacies from broader search: logging removed.
+          
         } catch (error) {
-          // Broader search failed: logging removed.
+       
         }
       }
 
@@ -75,14 +107,28 @@ export default function NearbyPharmacies() {
       
       uniquePharmacies.sort((a, b) => a.distance - b.distance);
       
-      // Limit to closest 10 pharmacies maximum
-      const finalPharmacies = uniquePharmacies.slice(0, 10);
+    
+      const recomputed = uniquePharmacies.map((p) => ({
+        ...p,
+        distance: calculateDistance(lat, lon, p.lat, p.lon),
+      }));
+      
+     
+      const withinRadius = recomputed.filter((p) => typeof p.distance === 'number' && p.distance <= Number(radius));
+      
+      if (withinRadius.length !== recomputed.length) {
+        const removed = recomputed.filter(p => p.distance > Number(radius)).map(p => ({ id: p.id, name: p.name, distance: p.distance }));
+        console.debug('NearbyPharmacies: removed items outside radius', { requestedRadiusKm: radius, removedCount: removed.length, removed });
+      }
+      
+  
+      const finalPharmacies = withinRadius.slice(0, 10);
       setPharmacies(finalPharmacies);
 
       if (finalPharmacies.length === 0) {
         setError(t('patient.nearby.no_within').replace('{km}', String(radius)));
       } else {
-  // Final pharmacies found: logging removed.
+
       }
 
     } catch (err: any) {
@@ -117,34 +163,41 @@ export default function NearbyPharmacies() {
       
       const data = await response.json();
       
-      const pharmaciesList: PharmacyItem[] = data.elements.map((element: any) => {
-        let elementLat, elementLon;
-        if (element.type === 'node') {
+     
+      const pharmaciesList: PharmacyItem[] = data.elements.reduce((acc: PharmacyItem[], element: any) => {
+        let elementLat: number | null = null;
+        let elementLon: number | null = null;
+        if (element.type === 'node' && typeof element.lat === 'number' && typeof element.lon === 'number') {
           elementLat = element.lat;
           elementLon = element.lon;
-        } else if (element.center) {
+        } else if (element.center && typeof element.center.lat === 'number' && typeof element.center.lon === 'number') {
           elementLat = element.center.lat;
           elementLon = element.center.lon;
-        } else {
-          elementLat = lat; 
-          elementLon = lon;
         }
 
+      
+        if (elementLat === null || elementLon === null) return acc;
+
         const distance = calculateDistance(lat, lon, elementLat, elementLon);
-        
-        return {
-          id: `osm-${element.id}`,
-          name: element.tags?.name || 'Local Pharmacy',
-          lat: elementLat,
-          lon: elementLon,
-          address: element.tags?.['addr:street'] ? 
-            `${element.tags['addr:street']}${element.tags['addr:housenumber'] ? ` ${element.tags['addr:housenumber']}` : ''}, ${element.tags['addr:city'] || element.tags['addr:suburb'] || ''}`.trim().replace(/,$/, '') : 
-            (element.tags?.['addr:full'] || 'Address not available'),
-          phone: element.tags?.['phone'] || element.tags?.['contact:phone'] || 'Phone not available',
-          distance: distance,
-          opening_hours: element.tags?.['opening_hours']
-        };
-      }).filter((pharmacy: PharmacyItem) => pharmacy.distance <= radius); 
+
+    
+        if (distance <= radius) {
+          acc.push({
+            id: `osm-${element.id}`,
+            name: element.tags?.name || 'Local Pharmacy',
+            lat: elementLat,
+            lon: elementLon,
+            address: element.tags?.['addr:street'] ? 
+              `${element.tags['addr:street']}${element.tags['addr:housenumber'] ? ` ${element.tags['addr:housenumber']}` : ''}, ${element.tags['addr:city'] || element.tags['addr:suburb'] || ''}`.trim().replace(/,$/, '') : 
+              (element.tags?.['addr:full'] || 'Address not available'),
+            phone: element.tags?.['phone'] || element.tags?.['contact:phone'] || 'Phone not available',
+            distance,
+            opening_hours: element.tags?.['opening_hours']
+          });
+        }
+
+        return acc;
+      }, []);
 
       return pharmaciesList;
     } catch (error) {
@@ -167,57 +220,20 @@ export default function NearbyPharmacies() {
   // View on Google Maps
   // (view on map removed — keep only directions)
 
-  // Automatically get location when component mounts
+  // Automatically get location when component mounts and whenever radius changes
   useEffect(() => {
-    if (!navigator.geolocation) { 
-      setError(t('patient.nearby.geolocation_unsupported'));
-      setLoading(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const location = {
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude
-        };
-        setUserLocation(location);
-  // Optionally fetch user address if needed in future. Skipping to reduce network calls.
-        // Start searching for nearby pharmacies
-        findNearbyPharmacies(location.lat, location.lon, searchRadius);
-      },
-      (err) => {
-        console.error('Location error:', err);
-        if (err.code === err.PERMISSION_DENIED) {
-          setError(t('patient.nearby.permission_denied'));
-        } else if (err.code === err.TIMEOUT) {
-          setError(t('patient.nearby.request_timeout'));
-        } else {
-          setError(t('patient.nearby.enable_services'));
-        }
-        setLoading(false);
-      },
-      { 
-        timeout: 15000,
-        enableHighAccuracy: true,
-        maximumAge: 60000 // 1 minute
-      }
-    );
+    // always request fresh position and search when component mounts or radius changes
+    requestAndFindNearby();
   }, [searchRadius]);
 
   const handleRetry = () => {
-    if (userLocation) {
-      findNearbyPharmacies(userLocation.lat, userLocation.lon, searchRadius);
-    } else {
-      window.location.reload();
-    }
+    // re-request device location and rerun search
+    requestAndFindNearby();
   };
 
   const handleRadiusChange = (newRadius: number) => {
     setSearchRadius(newRadius);
-    if (userLocation) {
-      findNearbyPharmacies(userLocation.lat, userLocation.lon, newRadius);
-    }
+    // effect will trigger requestAndFindNearby because searchRadius is in dependency
   };
   const getDistanceColor = (distance: number) => {
     if (distance <= 1) return 'text-green-600 bg-green-100';
@@ -234,6 +250,12 @@ export default function NearbyPharmacies() {
 
   return (
     <div className="p-4 max-w-4xl mx-auto">
+      {/* quick manual location refresh */}
+      <div className="mb-4 flex justify-end">
+        <button onClick={requestAndFindNearby} className="text-sm px-3 py-1 bg-white border rounded shadow-sm">
+          {t('patient.nearby.use_my_location') || 'Use my location'}
+        </button>
+      </div>
       <div className="flex items-center gap-3 mb-6">
         <MapPin className="text-green-600" size={28} />
         <div className="flex-1">

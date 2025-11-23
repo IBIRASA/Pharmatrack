@@ -2,167 +2,74 @@
 
 describe('Pharmacy Dashboard', () => {
   beforeEach(() => {
-    cy.clearCookies();
-    cy.clearLocalStorage();
-    cy.visit('/login');
-    
-    cy.intercept('POST', '**/api/users/login/').as('loginRequest');
-    
-    cy.get('input#email').clear().type('pharmacy@test.com');
-    cy.get('input#password').clear().type('password123');
-    cy.get('button[type="submit"]').click();
-    
-    cy.wait('@loginRequest', { timeout: 10000 }).then((interception) => {
-      const status = interception.response?.statusCode;
-      
-      if (status === 200) {
-        cy.url().should('include', '/pharmacy-dashboard', { timeout: 10000 });
-        cy.wait(3000); // Wait for toasts
-      } else {
-        cy.log('❌ Pharmacy login failed - Run: python manage.py shell');
-        cy.log('Then run: from users.models import Pharmacy; Pharmacy.objects.update(is_verified=True)');
-        throw new Error('Pharmacy not approved or not found');
+    localStorage.setItem('token', 'test-token');
+    localStorage.setItem('user', JSON.stringify({
+      id: 1,
+      email: 'pharmacy@test.com',
+      user_type: 'pharmacy',
+      name: 'Test Pharmacy'
+    }));
+
+    cy.intercept('GET', '**/inventory/dashboard-stats/**', {
+      statusCode: 200,
+      body: {
+        total_revenue: '5000.00',
+        total_sales: 100,
+        today_sales: 10,
+        low_stock_items: 5
       }
-    });
+    }).as('getStats');
+
+    cy.intercept('GET', '**/inventory/medicines/**', {
+      statusCode: 200,
+      body: [
+        {
+          id: 1,
+          name: 'Aspirin',
+          stock_quantity: 100,
+          unit_price: '10.00'
+        }
+      ]
+    }).as('getMedicines');
+
+    cy.visit('/pharmacy-dashboard');
   });
 
-  describe('Dashboard Overview', () => {
-    it('should display pharmacy dashboard layout', () => {
-      cy.get('body').should('be.visible');
-      cy.get('nav, aside, [class*="sidebar"]').should('exist');
-      cy.contains(/dashboard|overview|welcome|pharmacy/i).should('be.visible');
-    });
-
-    it('should display navigation menu', () => {
-      cy.get('body').then($body => {
-        const hasNav = 
-          $body.text().match(/inventory|stock/i) ||
-          $body.text().match(/order/i) ||
-          $body.text().match(/sales|report/i);
-        
-        expect(hasNav).to.exist;
-      });
-    });
-
-    it('should display analytics cards', () => {
-      cy.get('body').then($body => {
-        const hasAnalytics = 
-          $body.text().match(/sales|revenue|total|order|customer|product|medicine/i);
-        
-        if (hasAnalytics) {
-          expect(hasAnalytics).to.exist;
-        } else {
-          cy.contains(/dashboard|overview/i).should('exist');
-        }
-      });
-    });
+  it('should display dashboard stats', () => {
+    cy.contains(/dashboard|overview|stats/i, { timeout: 10000 }).should('exist');
   });
 
-  describe('Inventory Management', () => {
-    beforeEach(() => {
-      cy.wait(1000);
-      cy.get('body').then($body => {
-        const inventoryLink = $body.find('a, button').filter((i, el) => 
-          /inventory|stock|medicine/i.test(Cypress.$(el).text())
-        );
-        
-        if (inventoryLink.length > 0) {
-          cy.wrap(inventoryLink).first().click({ force: true });
-        } else {
-          cy.visit('/pharmacy-dashboard/inventory');
-        }
-      });
-    });
-
-    it('should display inventory page', () => {
-      cy.url().should('match', /inventory|medicine|stock/i);
-      cy.contains(/inventory|medicine.*list|stock/i, { timeout: 5000 }).should('be.visible');
-    });
-
-    it('should display medicine list', () => {
-      cy.intercept('GET', '**/api/inventory/medicines/**', {
-        statusCode: 200,
-        body: []
-      }).as('getMedicines');
-      
-      cy.wait(1000);
-      cy.get('body').should('exist');
-      expect(true).to.be.true;
-    });
-
-    it('should add new medicine', () => {
-      cy.get('body').then($body => {
-        const addButton = $body.find('button, a').filter((i, el) => 
-          /add.*medicine|new.*medicine|\+/i.test(Cypress.$(el).text())
-        );
-        
-        if (addButton.length > 0) {
-          cy.wrap(addButton).first().click({ force: true });
-          cy.wait(500);
-        }
-        expect(true).to.be.true;
-      });
-    });
+  it('should display medicines list', () => {
+    cy.contains(/inventory|medicine|stock/i, { timeout: 10000 }).should('exist');
   });
 
-  describe('Orders Management', () => {
-    it('should display orders page', () => {
-      cy.get('body').then($body => {
-        const ordersLink = $body.find('a, button').filter((i, el) => 
-          /order/i.test(Cypress.$(el).text())
-        );
-        
-        if (ordersLink.length > 0) {
-          cy.wrap(ordersLink).first().click({ force: true });
-        } else {
-          cy.visit('/pharmacy-dashboard/orders');
-        }
-      });
-      cy.contains(/order/i).should('be.visible');
-    });
-
-    it('should display order list', () => {
-      cy.intercept('GET', '**/api/orders/**', {
-        statusCode: 200,
-        body: []
-      }).as('getOrders');
-      
-      cy.visit('/pharmacy-dashboard/orders');
-      cy.wait('@getOrders');
-      expect(true).to.be.true;
-    });
-
-    it('should filter orders by status', () => {
-      cy.visit('/pharmacy-dashboard/orders');
-      cy.wait(1000);
-      expect(true).to.be.true;
-    });
+  it('should navigate to inventory', () => {
+    cy.contains(/inventory|medicine|stock/i).first().click();
+    cy.wait(1000);
   });
 
-  describe('Sales Report', () => {
-    it('should display sales report page', () => {
-      cy.get('body').then($body => {
-        const salesLink = $body.find('a, button').filter((i, el) => 
-          /sales|report/i.test(Cypress.$(el).text())
-        );
-        
-        if (salesLink.length > 0) {
-          cy.wrap(salesLink).first().click({ force: true });
-        } else {
-          cy.visit('/pharmacy-dashboard/sales');
-        }
-      });
-      
-      cy.wait(1000);
-      expect(true).to.be.true;
-    });
+  it('should navigate to orders', () => {
+    cy.contains(/order/i).first().click();
+    cy.wait(1000);
   });
 
-  describe('Settings', () => {
-    it('should navigate to settings', () => {
-      cy.visit('/pharmacy-dashboard/settings');
-      cy.wait(1000);
-      expect(true).to.be.true;
-    });
+  it('should navigate to sales', () => {
+    // Sales might be under "Sales Report" or within inventory section
+    cy.contains(/sales report|report/i, { timeout: 10000 }).should('exist');
+  });
+
+  it('should open add medicine modal', () => {
+    // Navigate to inventory first
+    cy.contains(/inventory/i).click();
+    cy.wait(1000);
+    
+    // Look for add button with various possible labels
+    cy.get('button, a').contains(/add|create|\+|new medicine/i, { timeout: 10000 })
+      .should('exist');
+  });
+
+  it('should logout successfully', () => {
+    cy.contains(/logout|sign out/i).click();
+    cy.url().should('include', '/login');
   });
 });

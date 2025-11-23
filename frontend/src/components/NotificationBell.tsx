@@ -118,17 +118,17 @@ export default function NotificationBell() {
         const top = rect.bottom + 8;
         const style = { top, left, width };
         return createPortal(
-          <div style={{ position: 'fixed', top: style.top, left: style.left, width: style.width, zIndex: 9999 }} className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg origin-top-right text-white">
+          <div style={{ position: 'fixed', top: style.top, left: style.left, width: style.width, zIndex: 9999 }} className="bg-gray-100 border border-gray-200 rounded-lg shadow-lg origin-top-right text-white">
             <div className="p-3 border-b">
               <div className="flex items-center justify-between">
                 {/* Use a literal, clear title so raw translation keys don't surface */}
-                <div className="font-semibold text-white">Notifications</div>
-                <div className="text-sm text-gray-300">{items.length} total</div>
+                <div className="font-semibold text-gray-700">Notifications</div>
+                <div className="text-sm text-gray-600">{items.length} total</div>
               </div>
 
               {/* Controls: toggle unread/all view */}
               <div className="mt-2 flex items-center gap-2">
-                <button onClick={() => setShowAll((s) => !s)} className="text-sm text-gray-300 hover:underline">
+                <button onClick={() => setShowAll((s) => !s)} className="text-sm text-gray-500 hover:underline">
                   {showAll ? 'Show unread' : `Show all (${items.length})`}
                 </button>
               </div>
@@ -167,9 +167,9 @@ export default function NotificationBell() {
                 <div className="p-4 text-sm text-white">{t('notifications.empty') || 'No notifications'}</div>
               )}
               {(showAll ? items : items.filter(n => !n.read)).map((n) => (
-                <div key={n.id} className={`p-3 border-b border-gray-700 flex items-start gap-3 ${n.read ? 'bg-gray-700' : 'bg-gray-800'}`}>
+                <div key={n.id} className={`p-3 border-b border-gray-700 flex items-start gap-3 ${n.read ? 'bg-gray-200' : 'bg-gray-200'}`}>
                   <div className="flex-1">
-                    <div className="text-sm text-white font-medium cursor-pointer" onClick={async () => {
+                    <div className="text-sm text-gray-700 font-medium cursor-pointer" onClick={async () => {
 
                       try {
                         if (n.verb === 'order_rejected' || n.data?.contact_url) {
@@ -189,7 +189,7 @@ export default function NotificationBell() {
                         setOpen(false);
                       }
                     }}>{n.message}</div>
-                    <div className="text-xs text-gray-300 mt-1">{new Date(n.created_at).toLocaleString()}</div>
+                    <div className="text-xs text-gray-800 mt-1">{new Date(n.created_at).toLocaleString()}</div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     {!n.read && (
