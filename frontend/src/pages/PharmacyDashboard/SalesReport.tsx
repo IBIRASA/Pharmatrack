@@ -29,37 +29,26 @@ export default function SalesReport() {
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [recentSales, setRecentSales] = useState<any[]>([]);
 
-  useEffect(() => {
-    loadData();
-  }, [period]);
-
-  useEffect(() => {
-    const onSale = () => loadData();
-    window.addEventListener('pharmatrack:sale:created', onSale);
-    return () => window.removeEventListener('pharmatrack:sale:created', onSale);
-  }, []);
-
-  const loadData = async () => {
+  // loadData moved above effects to avoid "used before defined" / hook lint errors
+  const loadData = async (p: 'daily' | 'weekly' | 'monthly' = period): Promise<void> => {
     try {
       setLoading(true);
       const [reportData, statsData] = await Promise.all([
-        getSalesReports(period),
+        getSalesReports(p),
         getDashboardStats(),
       ]);
 
       // Prefer backend recent sales (scoped to authenticated pharmacy); fall back to mock storage
-      let recent = [];
+      let recent: any[] = [];
       try {
         const resp = await (await import('../../utils/api')).getSalesData();
         recent = resp.results || resp || [];
       } catch (e) {
-        // Only use the mock fallback when client is offline. If online and backend failed,
-        // surface an empty recent list so the UI shows no data rather than unrelated mock data.
         if (typeof window !== 'undefined' && 'navigator' in window && !window.navigator.onLine) {
           try {
             const mock = await getMockSalesHistory(1, 10);
-            recent = mock.results;
-          } catch (e2) {
+            recent = mock.results || [];
+          } catch {
             recent = [];
           }
         } else {
@@ -76,6 +65,17 @@ export default function SalesReport() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadData(period);
+  }, [period]);
+
+  useEffect(() => {
+    // call loadData using current period when a sale is created
+    const onSale = () => loadData(period);
+    window.addEventListener('pharmatrack:sale:created', onSale);
+    return () => window.removeEventListener('pharmatrack:sale:created', onSale);
+  }, []);
 
   // If running in dev and there is no data, auto-generate sample sales to make charts visible
   useEffect(() => {
@@ -311,31 +311,53 @@ export default function SalesReport() {
                   </td>
                 </tr>
               ) : (
-                recentSales.map((sale) => (
-                  <tr key={sale.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-mono text-gray-900">
-                      {sale.transaction_id || sale.id}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      <div>
-                        <div className="font-medium">{sale.customer_name}</div>
-                        <div className="text-gray-500 text-xs">{sale.customer_phone}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      {sale.medicine_name}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      {sale.quantity}
-                    </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-green-600">
-                      ${sale.total_price}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      {new Date(sale.sale_date).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))
+                recentSales.map((sale) => {
+                  const txId = sale.transaction_id || sale.id || sale.tx_id || '—';
+                  const custName =
+                    sale.customer_name ||
+                    sale.customer?.name ||
+                    sale.client?.name ||
+                    sale.buyer ||
+                    sale.customer?.full_name ||
+                    '—';
+                  const custPhone =
+                    sale.customer_phone ||
+                    sale.customer?.phone ||
+                    sale.client?.phone ||
+                    sale.customer?.mobile ||
+                    '';
+                  const medName =
+                    sale.medicine_name ||
+                    sale.medicine?.name ||
+                    sale.item?.name ||
+                    sale.product ||
+                    sale.med_name ||
+                    '—';
+                  const qty = sale.quantity ?? sale.qty ?? sale.amount ?? '—';
+                  const total =
+                    sale.total_price ?? sale.total ?? sale.amount_paid ?? sale.price_total ?? '—';
+                  const dateVal = sale.sale_date || sale.created_at || sale.date || sale.timestamp;
+
+                  return (
+                    <tr key={txId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm font-mono text-gray-900">{txId}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <div>
+                          <div className="font-medium">{custName}</div>
+                          <div className="text-gray-500 text-xs">{custPhone}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{medName}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{qty}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-green-600">
+                        ${typeof total === 'number' ? total.toFixed(2) : total}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {dateVal ? new Date(dateVal).toLocaleDateString() : '—'}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
