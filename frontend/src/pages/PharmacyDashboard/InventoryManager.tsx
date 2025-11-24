@@ -25,6 +25,8 @@ interface Medicine {
 export default function InventoryManager() {
   const { t } = useTranslation();
   const [medicines, setMedicines] = useState<Medicine[]>([]);
+  // medicines currently shown (non-expired)
+  const [expiredMedicines, setExpiredMedicines] = useState<Medicine[]>([]);
   const [filtered, setFiltered] = useState<Medicine[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,8 +50,28 @@ export default function InventoryManager() {
       } else {
         data = await getMedicines();
       }
-      setMedicines(data);
-      setFiltered(data);
+
+      // split out expired items so they are not shown in the main list
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const expired: Medicine[] = [];
+      const active: Medicine[] = [];
+      if (Array.isArray(data)) {
+        for (const m of data) {
+          if (m?.expiry_date) {
+            const exp = new Date(m.expiry_date);
+            if (!isNaN(exp.getTime()) && exp < today) {
+              expired.push(m);
+              continue;
+            }
+          }
+          active.push(m);
+        }
+      }
+
+      setMedicines(active);
+      setFiltered(active);
+      setExpiredMedicines(expired);
     } catch (err) {
       console.error('Failed to load medicines', err);
     } finally {
@@ -69,6 +91,7 @@ export default function InventoryManager() {
     try {
       setMedicines(prev => prev.map(m => m.id === id ? { ...m, ...changes } : m));
       setFiltered(prev => prev.map(m => m.id === id ? { ...m, ...changes } : m));
+      setExpiredMedicines(prev => prev.map(m => m.id === id ? { ...m, ...changes } : m));
       await updateMedicine(id, changes);
       await loadMedicines();
     } catch (err) {
@@ -154,16 +177,20 @@ export default function InventoryManager() {
   const handleDelete = async (m: Medicine) => {
     if (!confirm(t('inventory.delete.confirm').replace('{name}', m.name))) return;
     const prevMeds = medicines.slice();
+    const prevExpired = expiredMedicines.slice();
+    // remove from whichever list contains it
     setMedicines((prev) => prev.filter((x) => x.id !== m.id));
     setFiltered((prev) => prev.filter((x) => x.id !== m.id));
+    setExpiredMedicines((prev) => prev.filter((x) => x.id !== m.id));
     try {
       await deleteMedicine(m.id);
       await loadMedicines();
     } catch (err: any) {
       console.error('Delete failed, reverting local change', err);
-  setMedicines(prevMeds);
-  setFiltered(prevMeds);
-  try { showError(t('inventory.delete.failed').replace('{msg}', err instanceof Error ? err.message : String(err))); } catch {}
+      setMedicines(prevMeds);
+      setFiltered(prevMeds);
+      setExpiredMedicines(prevExpired);
+      try { showError(t('inventory.delete.failed').replace('{msg}', err instanceof Error ? err.message : String(err))); } catch {}
     }
   };
 
@@ -413,6 +440,31 @@ export default function InventoryManager() {
           await handleSaveEdit(id, changes);
         }}
       />
+
+      {/* Expired items: moved out of main list */}
+      {expiredMedicines.length > 0 && (
+        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-yellow-800 mb-3">Expired items</h3>
+          <div className="divide-y">
+            {expiredMedicines.map((m) => (
+              <div key={m.id} className="py-3 flex items-center justify-between">
+                <div>
+                  <div className="font-medium text-gray-900">{m.name}</div>
+                  <div className="text-xs text-gray-600">Expired on: {m.expiry_date ? new Date(m.expiry_date).toLocaleDateString() : 'Unknown'}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => handleEdit(m)} className="p-2 rounded-md hover:bg-gray-100">
+                    <Edit className="w-4 h-4 text-gray-700" />
+                  </button>
+                  <button onClick={() => handleDelete(m)} className="p-2 rounded-md hover:bg-gray-100">
+                    <Trash2 className="w-4 h-4 text-red-600" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
