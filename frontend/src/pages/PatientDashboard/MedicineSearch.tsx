@@ -375,7 +375,7 @@ export default function MedicineSearch() {
                         </p>
 
                           <div className="flex flex-wrap items-center gap-6">
-                          <div className="flex items-center gap-2">
+                          {/* <div className="flex items-center gap-2">
                             <div className="bg-green-100 p-2 rounded-lg">
                               <Package className="w-5 h-5 text-green-600" />
                             </div>
@@ -383,8 +383,8 @@ export default function MedicineSearch() {
                               <p className="text-xs text-gray-500">In Stock</p>
                               <p className="font-bold text-green-600 text-lg">{medicine.stock_quantity} units</p>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2">
+                          </div> */}
+                          {/* <div className="flex items-center gap-2">
                             <div className="bg-blue-100 p-2 rounded-lg">
                               <DollarSign className="w-5 h-5 text-blue-600" />
                             </div>
@@ -394,7 +394,7 @@ export default function MedicineSearch() {
                                 ${parseFloat(medicine.unit_price).toFixed(2)}
                               </p>
                             </div>
-                          </div>
+                          </div> */}
                           <div className="ml-auto flex items-center gap-2 flex-shrink-0 sm:ml-auto sm:mt-0 mt-3">
                             {/* Order button: always visible when in-stock. On small screens it appears below and expands full-width so it's visible. */}
                             {Number(medicine.stock_quantity) > 0 ? (

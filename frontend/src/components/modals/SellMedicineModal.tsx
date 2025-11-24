@@ -128,9 +128,9 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
               <p className={`font-medium ${medicine.is_low_stock ? 'text-orange-600' : 'text-gray-700'}`}>
                 {t('modals.sell_medicine.available_stock') ?? 'Available Stock:'} {medicine.stock_quantity} {t('modals.sell_medicine.units') ?? 'units'}
               </p>
-              <p className="font-medium text-green-700">
+              {/* <p className="font-medium text-green-700">
                 {t('modals.sell_medicine.price_label') ?? 'Price:'} ${parseFloat(medicine.unit_price).toFixed(2)} {t('modals.sell_medicine.per_unit') ?? 'per unit'}
-              </p>
+              </p> */}
             </div>
           </div>
 
@@ -208,7 +208,7 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
           </div>
 
           {/* Total Price Display */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          {/* <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex justify-between items-center">
               <span className="font-semibold text-gray-900">{t('modals.sell_medicine.total_label')}</span>
               <span className="text-xl font-bold text-green-700">
@@ -218,7 +218,7 @@ const SellMedicineModal: React.FC<SellMedicineModalProps> = ({
             <p className="text-xs text-green-600 mt-1">
               {t('modals.sell_medicine.total_calc').replace('{qty}', String(quantity)).replace('{price}', parseFloat(medicine.unit_price).toFixed(2))}
             </p>
-          </div>
+          </div> */}
 
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-4">

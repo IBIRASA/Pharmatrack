@@ -269,7 +269,7 @@ export default function NearbyPharmacies() {
         </div>
         
         {/* Radius Selector */}
-        <div className="flex items-center gap-2 bg-white border rounded-lg px-3 py-2">
+        {/* <div className="flex items-center gap-2 bg-white border rounded-lg px-3 py-2">
           <span className="text-sm text-gray-600 whitespace-nowrap">{t('patient.nearby.radius_label')}</span>
           <select 
             value={searchRadius}
@@ -282,7 +282,7 @@ export default function NearbyPharmacies() {
             <option value={10}>10km</option>
             <option value={15}>15km</option>
           </select>
-        </div>
+        </div> */}
       </div>
 
       {loading && (

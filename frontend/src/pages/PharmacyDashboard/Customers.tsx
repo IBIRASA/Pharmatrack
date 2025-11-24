@@ -32,10 +32,54 @@ export default function Customers() {
 
   const dedupeCustomers = (arr: any[]) => {
     const map = new Map<string, any>();
+
+    const normalizePhone = (p: any) => {
+      if (!p) return '';
+      try {
+        return String(p).replace(/[^0-9+]/g, '').replace(/^\+?0+/, '');
+      } catch {
+        return String(p);
+      }
+    };
+
+    const normalizeEmail = (e: any) => (e ? String(e).trim().toLowerCase() : '');
+    const normalizeName = (n: any) => (n ? String(n).trim().toLowerCase() : '');
+
     for (const c of arr) {
-      const key = String(c.id ?? c.email ?? c.phone ?? c.name ?? JSON.stringify(c));
-      if (!map.has(key)) map.set(key, c);
+      const idKey = c?.id != null ? `id:${String(c.id)}` : null;
+      const emailKey = c?.email ? `email:${normalizeEmail(c.email)}` : null;
+      const phoneKey = c?.phone ? `phone:${normalizePhone(c.phone)}` : null;
+      const nameKey = c?.name ? `name:${normalizeName(c.name)}` : null;
+
+      const key = idKey ?? emailKey ?? phoneKey ?? nameKey ?? `raw:${JSON.stringify(c)}`;
+
+      if (!map.has(key)) {
+        // clone to avoid mutating source
+        map.set(key, { ...c });
+      } else {
+        // merge numeric aggregates if present to avoid duplicates showing as separate rows
+        const existing = map.get(key);
+        if (typeof existing.total_purchases === 'number' && typeof c.total_purchases === 'number') {
+          existing.total_purchases = existing.total_purchases + c.total_purchases;
+        }
+        if (typeof existing.total_spent === 'number' && typeof c.total_spent === 'number') {
+          existing.total_spent = existing.total_spent + c.total_spent;
+        }
+        if (typeof existing.purchase_count === 'number' && typeof c.purchase_count === 'number') {
+          existing.purchase_count = Math.max(existing.purchase_count, c.purchase_count);
+        }
+        // prefer most recent last_purchase
+        try {
+          const exDate = existing.last_purchase ? new Date(existing.last_purchase) : null;
+          const cDate = c.last_purchase ? new Date(c.last_purchase) : null;
+          if (!exDate || (cDate && cDate > exDate)) existing.last_purchase = c.last_purchase;
+        } catch (e) {
+          // ignore
+        }
+        map.set(key, existing);
+      }
     }
+
     return Array.from(map.values());
   };
 
@@ -59,10 +103,11 @@ export default function Customers() {
     });
   };
 
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone.includes(searchTerm)
-  );
+  const filteredCustomers = customers.filter((customer) => {
+    const name = customer.name ? customer.name.toLowerCase() : '';
+    const phone = customer.phone ? String(customer.phone) : '';
+    return name.includes(searchTerm.toLowerCase()) || phone.includes(searchTerm);
+  });
 
   // Diagnostic data when customers list is empty
   const [rawOrders, setRawOrders] = useState<any[] | null>(null);

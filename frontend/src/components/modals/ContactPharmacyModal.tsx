@@ -20,7 +20,21 @@ export default function ContactPharmacyModal({ open, onClose, pharmacy }: Props)
   if (!open || !pharmacy) return null;
 
   const email = pharmacy.email || 'Not provided';
-  const phone = pharmacy.phone || pharmacy.contact_phone || pharmacy.phone_number || pharmacy.tel || pharmacy.mobile || 'Not provided';
+  // Collect all possible phone fields the pharmacy may have provided and dedupe/clean them
+  const rawPhones = [
+    pharmacy.phone,
+    pharmacy.contact_phone,
+    pharmacy.phone_number,
+    pharmacy.tel,
+    pharmacy.mobile,
+  ];
+  const phones = Array.from(
+    new Set(
+      rawPhones
+        .filter((p): p is string => Boolean(p) && p !== 'null')
+        .map((p) => p.trim())
+    )
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -62,13 +76,17 @@ export default function ContactPharmacyModal({ open, onClose, pharmacy }: Props)
 
           <div>
             <div className="text-sm text-gray-500">Phone</div>
-            <div className="text-sm">
-              {pharmacy.phone ? (
-                <a href={`tel:${pharmacy.phone}`} className="text-blue-600 hover:underline">
-                  {pharmacy.phone}
-                </a>
+            <div className="text-sm space-y-1">
+              {phones.length > 0 ? (
+                phones.map((p, idx) => (
+                  <div key={idx}>
+                    <a href={`tel:${p}`} className="text-blue-600 hover:underline break-words">
+                      {p}
+                    </a>
+                  </div>
+                ))
               ) : (
-                <span className="text-gray-600">{phone}</span>
+                <span className="text-gray-600">Not provided</span>
               )}
             </div>
           </div>
@@ -84,7 +102,7 @@ export default function ContactPharmacyModal({ open, onClose, pharmacy }: Props)
         <div className="mt-6 flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-250"
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
           >
             Close
           </button>
