@@ -18,7 +18,6 @@ const api = axios.create({
 
 export { api };
 
-// Add token to requests
 api.interceptors.request.use(
   (config) => {
     // ensure headers exist and add Authorization when token is present
